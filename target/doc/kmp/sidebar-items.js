@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["kmp_find","kmp_find_with_lsp_table","kmp_match","kmp_match_with_lsp_table","kmp_table"]};
