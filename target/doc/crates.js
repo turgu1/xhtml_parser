@@ -1,2 +1,2 @@
-window.ALL_CRATES = ["kmp","memchr","phf","phf_generator","phf_macros","phf_shared","proc_macro2","quote","rand","rand_core","siphasher","syn","unicode_ident","xhtml_parser"];
-//{"start":21,"fragment_lengths":[5,9,6,16,13,13,14,8,7,12,12,6,16,15]}
+window.ALL_CRATES = ["xhtml_parser"];
+//{"start":21,"fragment_lengths":[14]}
