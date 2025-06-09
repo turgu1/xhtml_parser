@@ -1,0 +1,22 @@
+Document [
+    Element {
+        tag_name: "parent"
+        children: [
+            Element {
+                tag_name: "child1"
+                attributes: [
+                    Attribute { name: "name", value: "<légo>" }
+                ]
+            }
+            Text {
+                "Bonjour École maternelle! <être ou ne pas être※,※telle est la question.>"
+            }
+            Element {
+                tag_name: "child2"
+                attributes: [
+                    Attribute { name: "name", value: "rust" }
+                ]
+            }
+        ]
+    }
+]
