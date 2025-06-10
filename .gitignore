@@ -3,5 +3,4 @@
 /target/tmp/
 **/*.rs.bk
 Cargo.lock
-/target/.rustc_info.json
 /target/CACHEDIR.TAG
