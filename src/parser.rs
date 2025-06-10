@@ -207,26 +207,26 @@ static ENTITIES_MAP: phf::Map<&'static [u8], &'static [u8]> = phf_map! {
 
 macro_rules! skip_after_slice_nobreak {
     ($contents: expr, $p: ident, $max: expr, $slice: expr) => {{
-        if $p < $contents.len() {
-            let max_pos: usize = ($p + $max).min($contents.len());
-            if let Some(pos) = kmp_find($slice, &$contents[$p..max_pos]) {
-                $p += pos + $slice.len();
+        if $p < $contents.len() as XmlIdx {
+            let max_pos: XmlIdx = ($p + $max).min($contents.len() as XmlIdx);
+            if let Some(pos) = kmp_find($slice, &$contents[$p as usize..max_pos as usize]) {
+                $p += pos as XmlIdx + $slice.len() as XmlIdx;
             } else {
-                $p = $contents.len(); // Move to the end if no more characters match
+                $p = $contents.len() as XmlIdx; // Move to the end if no more characters match
             }
         }
     }};
 }
 macro_rules! skip_chartype {
     ($contents: expr, $p: ident, $chartype: expr) => {{
-        if $p >= $contents.len() {
+        if $p >= $contents.len() as XmlIdx {
             break;
         }
-        if let Some(pos) = (&$contents[$p..])
+        if let Some(pos) = (&$contents[$p as usize..])
             .iter()
             .position(|&c| (CHARTYPE_TABLE[c as usize] & $chartype as u8) == 0)
         {
-            $p += pos;
+            $p += pos as XmlIdx;
         } else {
             break;
         }
@@ -235,24 +235,24 @@ macro_rules! skip_chartype {
 
 macro_rules! skip_chartype_nobreak {
     ($contents: expr, $p: ident, $chartype: expr) => {{
-        if $p < $contents.len() {
-            if let Some(pos) = (&$contents[$p..])
+        if $p < $contents.len() as XmlIdx {
+            if let Some(pos) = (&$contents[$p as usize..])
                 .iter()
                 .position(|&c| (CHARTYPE_TABLE[c as usize] & $chartype as u8) == 0)
             {
-                $p += pos;
+                $p += pos as XmlIdx;
             } else {
-                $p = $contents.len(); // Move to the end if no more characters match
+                $p = $contents.len() as XmlIdx; // Move to the end if no more characters match
             }
         } else {
-            $p = $contents.len(); // Move to the end if pointer is out of bounds
+            $p = $contents.len() as XmlIdx; // Move to the end if pointer is out of bounds
         }
     }};
 }
 
 macro_rules! scan_until_chartype {
     ($contents: expr, $p: ident, $chartype: expr) => {{
-        if $p >= $contents.len() {
+        if $p >= $contents.len() as XmlIdx {
             break;
         }
         if let Some(pos) = (&$contents[$p..])
@@ -268,9 +268,9 @@ macro_rules! scan_until_chartype {
 
 macro_rules! scan_until_char_or_nochange {
     ($contents: expr, $p: ident, $char: ident) => {{
-        if $p < $contents.len() {
-            if let Some(pos) = (&$contents[$p..]).iter().position(|&c| c == $char) {
-                $p += pos;
+        if $p < $contents.len() as XmlIdx {
+            if let Some(pos) = (&$contents[$p as usize..]).iter().position(|&c| c == $char) {
+                $p += pos as XmlIdx;
             }
         }
     }};
@@ -278,25 +278,25 @@ macro_rules! scan_until_char_or_nochange {
 
 macro_rules! scan_until_char_nobreak {
     ($contents: expr, $p: ident, $char: ident) => {{
-        if $p < $contents.len() {
-            if let Some(pos) = (&$contents[$p..]).iter().position(|&c| c == $char) {
-                $p += pos;
+        if $p < $contents.len() as XmlIdx {
+            if let Some(pos) = (&$contents[$p as usize..]).iter().position(|&c| c == $char) {
+                $p += pos as XmlIdx;
             } else {
-                $p = $contents.len(); // Move to the end if no more characters match
+                $p = $contents.len() as XmlIdx; // Move to the end if no more characters match
             }
         } else {
-            $p = $contents.len(); // Move to the end if pointer is out of bounds
+            $p = $contents.len() as XmlIdx; // Move to the end if pointer is out of bounds
         }
     }};
 }
 
 macro_rules! scan_until_char {
     ($contents: expr, $p: ident, $char: ident) => {{
-        if $p >= $contents.len() {
+        if $p >= $contents.len() as XmlIdx {
             break;
         }
-        if let Some(pos) = (&$contents[$p..]).iter().position(|&c| c == $char) {
-            $p += pos;
+        if let Some(pos) = (&$contents[$p as usize..]).iter().position(|&c| c == $char) {
+            $p += pos as XmlIdx;
         } else {
             break;
         }
@@ -316,17 +316,18 @@ impl Document {
     /// # Returns
     /// A formatted string showing the XML context around the error position    
     #[inline]
-    fn show_xml_around_error(&self, pos: usize) -> String {
+    fn show_xml_around_error(&self, pos: XmlIdx) -> String {
         let start = if pos > 30 { pos - 30 } else { 0 };
-        let end = if (pos + 30) < self.xml.len() {
+        let end = if (pos + 30) < self.xml.len() as XmlIdx {
             pos + 30
         } else {
-            self.xml.len()
+            self.xml.len() as XmlIdx
         };
         format!(
             "...{}[*]{}...",
-            std::str::from_utf8(&self.xml[start..pos]).unwrap_or("non valid utf-8"),
-            std::str::from_utf8(&self.xml[pos..end]).unwrap_or("non valid utf-8")
+            std::str::from_utf8(&self.xml[start as usize..pos as usize])
+                .unwrap_or("non valid utf-8"),
+            std::str::from_utf8(&self.xml[pos as usize..end as usize]).unwrap_or("non valid utf-8")
         )
     }
 
@@ -343,7 +344,7 @@ impl Document {
     /// # Returns
     /// A `Result` containing the formatted parsing error
     #[inline]
-    fn invalid(&self, msg: &str, pos: usize) -> Result<(), ParseXmlError> {
+    fn invalid(&self, msg: &str, pos: XmlIdx) -> Result<(), ParseXmlError> {
         Err(ParseXmlError::InvalidXml(format!(
             "{}. at position {}: {}",
             msg,
@@ -366,11 +367,7 @@ impl Document {
     /// `Ok(())` if the tags match, or a parsing error if they don't match
     /// or if the parent node is not an element
     #[inline]
-    fn check_closing_tag(
-        &self,
-        parent_idx: NodeIdx,
-        range: std::ops::Range<usize>,
-    ) -> Result<(), ParseXmlError> {
+    fn check_closing_tag(&self, parent_idx: NodeIdx, range: XmlRange) -> Result<(), ParseXmlError> {
         let parent = self.get_node(parent_idx)?;
         if let NodeType::Element { name, .. } = parent.get_node_type() {
             let tag_name = self.get_str_from_range(name);
@@ -452,11 +449,11 @@ impl Document {
     #[inline]
     fn translate_entity(&mut self, from: XmlIdx, to: XmlIdx) -> Option<(XmlIdx, XmlIdx)> {
         let mut from = from;
-        let number = self.xml[from] == HASH;
+        let number = self.xml[from as usize] == HASH;
         if number {
             from += 1;
         }
-        let hex_number = self.xml[from] == X_CHAR;
+        let hex_number = self.xml[from as usize] == X_CHAR;
         if hex_number {
             from += 1;
         }
@@ -466,7 +463,7 @@ impl Document {
             return None; // No entity found
         }
 
-        let from_u8 = &self.xml[start..from];
+        let from_u8 = &self.xml[start as usize..from as usize];
         let bytes = if number {
             let value = if hex_number {
                 u32::from_str_radix(self.hexadecimal(from_u8).as_str(), 16).unwrap_or(0)
@@ -486,11 +483,11 @@ impl Document {
                 return None;
             }
         };
-        let buf = &mut self.xml[to..];
+        let buf = &mut self.xml[to as usize..];
         let len = bytes.len().min(buf.len());
         buf[..len].copy_from_slice(&bytes[..len]);
 
-        Some((from + 1, to + len)) // pass the semicolon
+        Some((from + 1, to + len as XmlIdx)) // pass the semicolon
     }
 
     /// Processes XML content by translating entity references in-place.
@@ -514,21 +511,23 @@ impl Document {
         let mut from = range.start;
 
         loop {
-            let ampersand_pos = self.xml[from..end]
+            let ampersand_pos = self.xml[from as usize..end as usize]
                 .iter()
                 .position(|&c| c == AMPERSAND)
-                .map_or(end, |pos| from + pos);
+                .map_or(end, |pos| from + pos as XmlIdx);
             if ampersand_pos >= end {
                 if from != to {
                     // Move the tail content to the `to` position
-                    self.xml.copy_within(from..end, to);
+                    self.xml
+                        .copy_within(from as usize..end as usize, to as usize);
                 }
                 to += end - from;
                 break; // No more '&' found
             } else {
                 if ampersand_pos > from {
                     // Move the content before the '&' to the `to` position
-                    self.xml.copy_within(from..ampersand_pos, to);
+                    self.xml
+                        .copy_within(from as usize..ampersand_pos as usize, to as usize);
                     to += ampersand_pos - from;
                 }
                 if let Some((new_from, new_to)) = self.translate_entity(ampersand_pos + 1, to) {
@@ -562,14 +561,17 @@ impl Document {
     /// - `localname` remains `localname` (no change if no prefix exists)
     #[inline]
     fn remove_namespace_prefix(&mut self, range: XmlRange) -> XmlRange {
-        let colon_pos = self.xml[range.start..range.end]
+        let colon_pos = self.xml[range.start as usize..range.end as usize]
             .iter()
             .position(|&c| c == COLON)
-            .map_or(range.end, |pos| range.start + pos);
+            .map_or(range.end, |pos| range.start + pos as XmlIdx);
 
         if colon_pos < range.end {
             // Remove the namespace prefix
-            self.xml.copy_within(colon_pos + 1..range.end, range.start);
+            self.xml.copy_within(
+                (colon_pos + 1) as usize..range.end as usize,
+                range.start as usize,
+            );
             range.start..(range.start + (range.end - colon_pos - 1))
         } else {
             range.start..range.end
@@ -609,8 +611,8 @@ impl Document {
 
         let mut parent_idx = root_idx;
         let mut state = State::Start;
-        let mut i = 0;
-        let size = self.xml.len();
+        let mut i: XmlIdx = 0 as XmlIdx;
+        let size = self.xml.len() as XmlIdx;
 
         loop {
             state = match state {
@@ -619,14 +621,14 @@ impl Document {
                     State::ReadTag
                 }
                 State::ReadTag => {
-                    if self.xml[i] != LESS_THAN {
-                        return self.invalid("Expected '<' to start a tag", i);
+                    if self.xml[i as usize] != LESS_THAN {
+                        return self.invalid("Expected '<' to start a tag", i as XmlIdx);
                     }
                     i += 1; // skip first '<'
                     if i >= size {
                         State::End
                     } else {
-                        match self.xml[i] {
+                        match self.xml[i as usize] {
                             SLASH => {
                                 i += 1;
                                 State::ReadTagClose
@@ -634,7 +636,7 @@ impl Document {
                             EXCLAMATION_MARK => {
                                 i += 1;
                                 if i < size {
-                                    if self.xml[i] == b'[' {
+                                    if self.xml[i as usize] == b'[' {
                                         i += 1;
                                         skip_after_slice_nobreak!(
                                             self.xml,
@@ -642,7 +644,7 @@ impl Document {
                                             5000,
                                             &b">".as_slice()
                                         );
-                                    } else if self.xml[i] == b'-' {
+                                    } else if self.xml[i as usize] == b'-' {
                                         i += 1;
                                         skip_after_slice_nobreak!(
                                             self.xml,
@@ -677,8 +679,11 @@ impl Document {
                 }
                 State::ReadTagOpen => {
                     let start = i;
-                    if CHARTYPE_TABLE[self.xml[i] as usize] & START_SYMBOL == 0 {
-                        return self.invalid("Tag name must start with a letter or underscore", i);
+                    if CHARTYPE_TABLE[self.xml[i as usize] as usize] & START_SYMBOL == 0 {
+                        return self.invalid(
+                            "Tag name must start with a letter or underscore",
+                            i as XmlIdx,
+                        );
                     }
                     i += 1; // skip first char of tag name
                     skip_chartype!(self.xml, i, SYMBOL);
@@ -732,13 +737,13 @@ impl Document {
                 }
                 State::ReadAttribute => {
                     skip_chartype!(self.xml, i, Chartype::Space);
-                    match self.xml[i] {
+                    match self.xml[i as usize] {
                         SLASH => {
                             i += 1;
                             if i >= size {
                                 break;
                             }
-                            if self.xml[i] != GREATER_THAN {
+                            if self.xml[i as usize] != GREATER_THAN {
                                 return self
                                     .invalid("Expected '>' after '/' in self-closing tag", i);
                             }
@@ -759,7 +764,7 @@ impl Document {
                         }
                         _ => {
                             let start = i;
-                            if CHARTYPE_TABLE[self.xml[i] as usize] & START_SYMBOL == 0 {
+                            if CHARTYPE_TABLE[self.xml[i as usize] as usize] & START_SYMBOL == 0 {
                                 return self.invalid(
                                     "Attribute name must start with a letter or underscore",
                                     i,
@@ -767,7 +772,7 @@ impl Document {
                             }
                             i += 1;
                             skip_chartype!(self.xml, i, SYMBOL);
-                            if self.xml[i] != EQUAL {
+                            if self.xml[i as usize] != EQUAL {
                                 return self.invalid("Attribute must have an '=' sign", i);
                             }
                             let end = i;
@@ -775,7 +780,7 @@ impl Document {
                             if i >= size {
                                 break;
                             }
-                            let quote = self.xml[i];
+                            let quote = self.xml[i as usize];
                             if (quote != b'\'') && (quote != b'"') {
                                 return self
                                     .invalid("Attribute value must be enclosed in quotes", i);

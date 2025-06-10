@@ -1,4 +1,7 @@
 /target/debug/
 /target/release/
+/target/tmp/
 **/*.rs.bk
 Cargo.lock
+/target/.rust_info.json
+/target/CACHEDIR.TAG

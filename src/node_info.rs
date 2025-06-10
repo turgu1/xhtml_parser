@@ -15,7 +15,7 @@ use crate::node_type::NodeType;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NodeInfo {
-    //node_idx: NodeIdx,     // Could never be 0, as 0 is reserved for None
+    //node_idx: NodeIdx,   // Could never be 0, as 0 is reserved for None
     parent_idx: NodeIdx,   // Parent node index, 0 for root
     prev_sibling: NodeIdx, // previous sibling, or last child of parent
     next_sibling: NodeIdx, // Could be next_sibling or the node following the parent

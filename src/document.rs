@@ -5,6 +5,7 @@
 #![allow(unused, dead_code)]
 
 use core::ops::Range;
+use memchr::memchr_iter;
 use std::fmt::{self, Debug};
 
 use crate::attribute::{Attribute, AttributeInfo, Attributes};
@@ -38,9 +39,6 @@ impl Document {
     /// - `Ok(Document)`: If the XML content is successfully parsed and a document is created.
     /// - `Err(ParseXmlError)`: If there is an error during parsing, such as invalid XML or insufficient memory.
     ///
-    /// # Panics
-    /// - Panics if the XML content is not valid UTF-8.
-    ///
     /// # Example
     /// ```
     /// use xhtml_parser::document::Document;
@@ -59,13 +57,17 @@ impl Document {
     /// - The `new` method estimates the number of nodes and attributes based on the XML content and allocates memory accordingly.
     ///   This is done to optimize performance and reduce memory reallocations during parsing.
     pub fn new(xml: Vec<u8>) -> Result<Self, ParseXmlError> {
-        let mut node_count = xml.iter().filter(|&&b| b == b'<').count();
-        let attr_count = xml.iter().filter(|&&b| b == b'=').count();
-        node_count += (node_count / 10); // Add 10% buffer for nodes
-        println!(
-            "Creating Document with estimation of {} nodes and {} attributes",
-            node_count, attr_count
-        );
+        // let mut node_count = xml.iter().filter(|&&b| b == b'<').count();
+        // let attr_count = xml.iter().filter(|&&b| b == b'=').count();
+        let mut node_count = memchr_iter(b'<', xml.as_slice()).count();
+        let attr_count = memchr_iter(b'=', xml.as_slice()).count();
+        node_count += (node_count / 10) + 1; // Add 10% buffer for nodes
+
+        if cfg!(feature = "verbose") {
+            println!("Estimated node count: {}", node_count);
+            println!("Estimated attribute count: {}", attr_count);
+        }
+
         let mut doc = Document {
             nodes: Vec::with_capacity(node_count + 1), // +1 for root node
             attributes: Vec::with_capacity(attr_count),
@@ -79,11 +81,13 @@ impl Document {
         doc.nodes.shrink_to_fit();
         doc.attributes.shrink_to_fit();
 
-        println!(
-            "Document created with {} nodes and {} attribute(s)",
-            doc.nodes.len(),
-            doc.attributes.len()
-        );
+        if cfg!(feature = "verbose") {
+            println!(
+                "Document created with {} nodes and {} attributes",
+                doc.nodes.len(),
+                doc.attributes.len()
+            );
+        }
 
         if node_count < doc.nodes.len() {
             println!(
@@ -274,8 +278,8 @@ impl Document {
     /// # Returns
     /// - `&str`: A string slice containing the XML content from the specified range.
     pub fn get_str_from_range(&self, range: &XmlRange) -> &str {
-        let xml_content = &self.xml[range.start..range.end];
-        std::str::from_utf8(xml_content).unwrap() // Assuming valid UTF-8
+        let xml_content = &self.xml[range.start as usize..range.end as usize];
+        std::str::from_utf8(xml_content).unwrap_or("non valid utf-8")
     }
 }
 

@@ -7,7 +7,7 @@ use core::ops::Range;
 
 pub type NodeIdx = u16;
 pub type AttrIdx = u16;
-pub type XmlIdx = usize;
+pub type XmlIdx = u32;
 
 pub type XmlRange = Range<XmlIdx>;
 pub type NodeRange = Range<NodeIdx>;

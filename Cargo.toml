@@ -18,6 +18,7 @@ phf = { version = "0.11", features = ["macros"] }
 default = ["namespace_removal", "parse_escapes"]
 namespace_removal = []
 parse_escapes = []
+verbose = []
 
 
 [dev-dependencies]
