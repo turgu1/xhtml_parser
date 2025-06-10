@@ -1,11 +1,11 @@
 [package]
 name = "xhtml_parser"
 version = "0.1.0"
-authors = ["turgu1"]
+authors = ["Guy Turcotte"]
 description = "Non-validating XHTML Tree-based parser."
 readme = "README.md"
 repository = "https://github.com/turgu1/xhtml_parser"
-keywords = ["xml", "xhtml", "parser", "dom", "epub", "reader"]
+keywords = ["xml", "xhtml", "parser", "dom", "epub"]
 edition = "2021"
 license = "MIT"
 
@@ -19,7 +19,6 @@ phf = { version = "0.11", features = ["macros"] }
 default = ["namespace_removal", "parse_escapes"]
 namespace_removal = []
 parse_escapes = []
-verbose = []
 
 
 [dev-dependencies]

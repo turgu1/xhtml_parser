@@ -25,10 +25,9 @@
 //!
 //! # Cargo defined Features
 //!
-//! - `default`: Enables the default features of the parser. All of the following features (but `verbose`) are enabled by default:
+//! - `default`: Enables the default features of the parser. All of the following features are enabled by default:
 //! - `namespace_removal`: Enables removal of XML namespaces from tag names during parsing.
 //! - `parse_escapes`: Enables parsing of character escapes sequences (`&..;`) in text nodes.
-//! - `verbose`: Enable information messages during parsing.
 
 pub mod attribute;
 pub mod defs;
