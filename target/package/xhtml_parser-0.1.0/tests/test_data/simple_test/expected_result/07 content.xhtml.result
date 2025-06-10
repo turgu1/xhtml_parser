@@ -1,0 +1,1294 @@
+Document [
+    Element {
+        tag_name: "package"
+        attributes: [
+            Attribute { name: "xmlns", value: "http://www.idpf.org/2007/opf" }
+            Attribute { name: "version", value: "2.0" }
+            Attribute { name: "unique-identifier", value: "uuid_id" }
+        ]
+        children: [
+            Element {
+                tag_name: "metadata"
+                attributes: [
+                    Attribute { name: "opf", value: "http://www.idpf.org/2007/opf" }
+                    Attribute { name: "dc", value: "http://purl.org/dc/elements/1.1/" }
+                    Attribute { name: "dcterms", value: "http://purl.org/dc/terms/" }
+                    Attribute { name: "xsi", value: "http://www.w3.org/2001/XMLSchema-instance" }
+                    Attribute { name: "calibre", value: "http://calibre.kovidgoyal.net/2009/metadata" }
+                ]
+                children: [
+                    Element {
+                        tag_name: "title"
+                        children: [
+                            Text {
+                                "Orgueil et préjugés"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "creator"
+                        attributes: [
+                            Attribute { name: "role", value: "aut" }
+                            Attribute { name: "file-as", value: "Austen, Jane" }
+                        ]
+                        children: [
+                            Text {
+                                "Austen, Jane"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "contributor"
+                        attributes: [
+                            Attribute { name: "role", value: "bkp" }
+                        ]
+                        children: [
+                            Text {
+                                "calibre (6.26.0) [https://calibre-ebook.com]"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "description"
+                        children: [
+                            Text {
+                                "En Angleterre, dans la société provinciale guindée, fière de ses privilèges et de son rang social, Mrs. Bennett, mère de cinq filles, veut à tout prix les marier... Elle n'hésite pas à faire la cour à son nouveau voisin, Mr. Bingley, jeune homme riche qu'elle aurait aimé donner comme époux à sa fille aînée Jane. S'ébauche une idylle entre Jane et Mr. Bingley, qui pourrait bien aboutir à un mariage. Elisabeth, soeur cadette de Jane, se réjouit de cet amour naissant. Mais c'est sans compter le dédain et la méfiance de l'ami intime de Bingley, Mr. Darcy qui, n'appréciant pas les manières de Mrs. Bennett et de ses filles, empêche Bingley de se prononcer. Elisabeth de tempérament fort et franc, consciente de la valeur et du mérite de son milieu, affronte Mr. Darcy... Extrait : Mr. Bingley, lui, avait eu vite fait de se mettre en rapport avec les personnes les plus en vue de l'assemblée. Il se montra ouvert, plein d'entrain, prit part à toutes les danses, déplora de voir le bal se terminer de si bonne heure, et parla d'en donner un lui-même à Netherfield. Des manières si parfaites se recommandent d'elles-mêmes. Quel contraste avec son ami !... Mr. Darcy dansa seulement une fois avec Mrs. Hurst et une fois avec miss Bingley. Il passa le reste du temps à se promener dans la salle, n'adressant la parole qu'aux personnes de son groupe et refusant de se laisser présenter aux autres. Aussi fut-il vite jugé. C'était l'homme le plus désagréable et le plus hautain que la terre eût jamais porté, et l'on espérait bien qu'il ne reparaîtrait à aucune autre réunion."
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "publisher"
+                        children: [
+                            Text {
+                                "Bibebook"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "identifier"
+                        attributes: [
+                            Attribute { name: "id", value: "uuid_id" }
+                            Attribute { name: "scheme", value: "uuid" }
+                        ]
+                        children: [
+                            Text {
+                                "acdd34a7-8d91-4ef7-91cb-5a46f09f595b"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "date"
+                        children: [
+                            Text {
+                                "1813-10-15T05:00:00+00:00"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "rights"
+                        children: [
+                            Text {
+                                "CC BY-SA"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "subject"
+                        children: [
+                            Text {
+                                "Fiction"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "subject"
+                        children: [
+                            Text {
+                                "Classique"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "subject"
+                        children: [
+                            Text {
+                                "Europe"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "subject"
+                        children: [
+                            Text {
+                                "Angleterre"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "language"
+                        children: [
+                            Text {
+                                "fr"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "identifier"
+                        attributes: [
+                            Attribute { name: "scheme", value: "calibre" }
+                        ]
+                        children: [
+                            Text {
+                                "acdd34a7-8d91-4ef7-91cb-5a46f09f595b"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "identifier"
+                        attributes: [
+                            Attribute { name: "scheme", value: "VERSION" }
+                        ]
+                        children: [
+                            Text {
+                                "2016-11-05"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "identifier"
+                        attributes: [
+                            Attribute { name: "scheme", value: "SOURCE" }
+                        ]
+                        children: [
+                            Text {
+                                "BEQ"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "identifier"
+                        attributes: [
+                            Attribute { name: "scheme", value: "URI" }
+                        ]
+                        children: [
+                            Text {
+                                "http://www.bibebook.com/search/978-2-8247-0791-4"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "identifier"
+                        attributes: [
+                            Attribute { name: "scheme", value: "FILENAME" }
+                        ]
+                        children: [
+                            Text {
+                                "austen_jane_-_orgueil_et_prejuges"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "identifier"
+                        attributes: [
+                            Attribute { name: "scheme", value: "ISBN" }
+                        ]
+                        children: [
+                            Text {
+                                "9782824707914"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "meta"
+                        attributes: [
+                            Attribute { name: "name", value: "calibre:title_sort" }
+                            Attribute { name: "content", value: "Orgueil et préjugés" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "meta"
+                        attributes: [
+                            Attribute { name: "name", value: "calibre:timestamp" }
+                            Attribute { name: "content", value: "2020-10-01T21:02:43+00:00" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "meta"
+                        attributes: [
+                            Attribute { name: "name", value: "cover" }
+                            Attribute { name: "content", value: "cover" }
+                        ]
+                    }
+                ]
+            }
+            Element {
+                tag_name: "manifest"
+                children: [
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "titlepage" }
+                            Attribute { name: "href", value: "titlepage.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html1" }
+                            Attribute { name: "href", value: "title.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html2" }
+                            Attribute { name: "href", value: "about.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html3" }
+                            Attribute { name: "href", value: "credits.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html4" }
+                            Attribute { name: "href", value: "licence.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html561" }
+                            Attribute { name: "href", value: "epub_split_000.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html560" }
+                            Attribute { name: "href", value: "epub_split_001.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html559" }
+                            Attribute { name: "href", value: "epub_split_002.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html558" }
+                            Attribute { name: "href", value: "epub_split_003.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html557" }
+                            Attribute { name: "href", value: "epub_split_004.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html556" }
+                            Attribute { name: "href", value: "epub_split_005.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html555" }
+                            Attribute { name: "href", value: "epub_split_006.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html554" }
+                            Attribute { name: "href", value: "epub_split_007.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html553" }
+                            Attribute { name: "href", value: "epub_split_008.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html552" }
+                            Attribute { name: "href", value: "epub_split_009.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html551" }
+                            Attribute { name: "href", value: "epub_split_010.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html550" }
+                            Attribute { name: "href", value: "epub_split_011.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html549" }
+                            Attribute { name: "href", value: "epub_split_012.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html548" }
+                            Attribute { name: "href", value: "epub_split_013.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html547" }
+                            Attribute { name: "href", value: "epub_split_014.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html546" }
+                            Attribute { name: "href", value: "epub_split_015.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html545" }
+                            Attribute { name: "href", value: "epub_split_016.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html544" }
+                            Attribute { name: "href", value: "epub_split_017.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html543" }
+                            Attribute { name: "href", value: "epub_split_018.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html542" }
+                            Attribute { name: "href", value: "epub_split_019.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html541" }
+                            Attribute { name: "href", value: "epub_split_020.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html540" }
+                            Attribute { name: "href", value: "epub_split_021.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html539" }
+                            Attribute { name: "href", value: "epub_split_022.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html538" }
+                            Attribute { name: "href", value: "epub_split_023.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html537" }
+                            Attribute { name: "href", value: "epub_split_024.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html536" }
+                            Attribute { name: "href", value: "epub_split_025.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html535" }
+                            Attribute { name: "href", value: "epub_split_026.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html534" }
+                            Attribute { name: "href", value: "epub_split_027.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html533" }
+                            Attribute { name: "href", value: "epub_split_028.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html532" }
+                            Attribute { name: "href", value: "epub_split_029.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html531" }
+                            Attribute { name: "href", value: "epub_split_030.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html530" }
+                            Attribute { name: "href", value: "epub_split_031.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html529" }
+                            Attribute { name: "href", value: "epub_split_032.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html528" }
+                            Attribute { name: "href", value: "epub_split_033.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html527" }
+                            Attribute { name: "href", value: "epub_split_034.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html526" }
+                            Attribute { name: "href", value: "epub_split_035.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html525" }
+                            Attribute { name: "href", value: "epub_split_036.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html524" }
+                            Attribute { name: "href", value: "epub_split_037.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html523" }
+                            Attribute { name: "href", value: "epub_split_038.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html522" }
+                            Attribute { name: "href", value: "epub_split_039.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html521" }
+                            Attribute { name: "href", value: "epub_split_040.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html520" }
+                            Attribute { name: "href", value: "epub_split_041.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html519" }
+                            Attribute { name: "href", value: "epub_split_042.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html518" }
+                            Attribute { name: "href", value: "epub_split_043.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html517" }
+                            Attribute { name: "href", value: "epub_split_044.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html516" }
+                            Attribute { name: "href", value: "epub_split_045.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html515" }
+                            Attribute { name: "href", value: "epub_split_046.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html514" }
+                            Attribute { name: "href", value: "epub_split_047.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html513" }
+                            Attribute { name: "href", value: "epub_split_048.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html512" }
+                            Attribute { name: "href", value: "epub_split_049.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html511" }
+                            Attribute { name: "href", value: "epub_split_050.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html510" }
+                            Attribute { name: "href", value: "epub_split_051.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html59" }
+                            Attribute { name: "href", value: "epub_split_052.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html58" }
+                            Attribute { name: "href", value: "epub_split_053.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html57" }
+                            Attribute { name: "href", value: "epub_split_054.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html56" }
+                            Attribute { name: "href", value: "epub_split_055.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html55" }
+                            Attribute { name: "href", value: "epub_split_056.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html54" }
+                            Attribute { name: "href", value: "epub_split_057.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html53" }
+                            Attribute { name: "href", value: "epub_split_058.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html52" }
+                            Attribute { name: "href", value: "epub_split_059.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html51" }
+                            Attribute { name: "href", value: "epub_split_060.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "html6" }
+                            Attribute { name: "href", value: "last.xhtml" }
+                            Attribute { name: "media-type", value: "application/xhtml+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "ncx" }
+                            Attribute { name: "href", value: "toc.ncx" }
+                            Attribute { name: "media-type", value: "application/x-dtbncx+xml" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "page_css" }
+                            Attribute { name: "href", value: "page_styles.css" }
+                            Attribute { name: "media-type", value: "text/css" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "css" }
+                            Attribute { name: "href", value: "stylesheet.css" }
+                            Attribute { name: "media-type", value: "text/css" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "cover" }
+                            Attribute { name: "href", value: "cover.jpeg" }
+                            Attribute { name: "media-type", value: "image/jpeg" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "image4" }
+                            Attribute { name: "href", value: "Images/By-sa.png" }
+                            Attribute { name: "media-type", value: "image/png" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "image2" }
+                            Attribute { name: "href", value: "Images/qrcode.png" }
+                            Attribute { name: "media-type", value: "image/png" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "image3" }
+                            Attribute { name: "href", value: "Images/spacer.gif" }
+                            Attribute { name: "media-type", value: "image/gif" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "ELZEVIER_C.ttf" }
+                            Attribute { name: "href", value: "Fonts/ELZEVIER_C.ttf" }
+                            Attribute { name: "media-type", value: "application/x-font-ttf" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "added" }
+                            Attribute { name: "href", value: "Fonts/LinBiolinum_R.otf" }
+                            Attribute { name: "media-type", value: "application/vnd.ms-opentype" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "added3" }
+                            Attribute { name: "href", value: "Fonts/LinLibertine_DR.otf" }
+                            Attribute { name: "media-type", value: "application/vnd.ms-opentype" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "added4" }
+                            Attribute { name: "href", value: "Fonts/LinLibertine_R.otf" }
+                            Attribute { name: "media-type", value: "application/vnd.ms-opentype" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "added2" }
+                            Attribute { name: "href", value: "Fonts/LinLibertine_RI.otf" }
+                            Attribute { name: "media-type", value: "application/vnd.ms-opentype" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "item"
+                        attributes: [
+                            Attribute { name: "id", value: "Swinging.ttf" }
+                            Attribute { name: "href", value: "Fonts/Swinging.ttf" }
+                            Attribute { name: "media-type", value: "application/x-font-ttf" }
+                        ]
+                    }
+                ]
+            }
+            Element {
+                tag_name: "spine"
+                attributes: [
+                    Attribute { name: "toc", value: "ncx" }
+                ]
+                children: [
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "titlepage" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html1" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html2" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html3" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html4" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html561" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html560" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html559" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html558" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html557" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html556" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html555" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html554" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html553" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html552" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html551" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html550" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html549" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html548" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html547" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html546" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html545" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html544" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html543" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html542" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html541" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html540" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html539" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html538" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html537" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html536" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html535" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html534" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html533" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html532" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html531" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html530" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html529" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html528" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html527" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html526" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html525" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html524" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html523" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html522" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html521" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html520" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html519" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html518" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html517" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html516" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html515" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html514" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html513" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html512" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html511" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html510" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html59" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html58" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html57" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html56" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html55" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html54" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html53" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html52" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html51" }
+                        ]
+                    }
+                    Element {
+                        tag_name: "itemref"
+                        attributes: [
+                            Attribute { name: "idref", value: "html6" }
+                        ]
+                    }
+                ]
+            }
+            Element {
+                tag_name: "guide"
+                children: [
+                    Element {
+                        tag_name: "reference"
+                        attributes: [
+                            Attribute { name: "type", value: "cover" }
+                            Attribute { name: "href", value: "titlepage.xhtml" }
+                            Attribute { name: "title", value: "Cover" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

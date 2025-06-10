@@ -1,0 +1,311 @@
+Document [
+    Element {
+        tag_name: "testcase"
+        children: [
+            Element {
+                tag_name: "name"
+                children: [
+                    Text {
+                        "Simple 3"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "description"
+                children: [
+                    Text {
+                        "Test case with a simple XML structure."
+                    }
+                ]
+            }
+            Element {
+                tag_name: "steps"
+                children: [
+                    Element {
+                        tag_name: "step"
+                        children: [
+                            Element {
+                                tag_name: "action"
+                                children: [
+                                    Text {
+                                        "Open the application"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "expectedResult"
+                                children: [
+                                    Text {
+                                        "The application should open successfully."
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "step"
+                        children: [
+                            Element {
+                                tag_name: "action"
+                                children: [
+                                    Text {
+                                        "Navigate to the settings page"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "expectedResult"
+                                children: [
+                                    Text {
+                                        "The settings page should be displayed."
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "step"
+                        children: [
+                            Element {
+                                tag_name: "action"
+                                children: [
+                                    Text {
+                                        "Change the theme to dark mode"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "expectedResult"
+                                children: [
+                                    Text {
+                                        "The theme should change to dark mode."
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+            Element {
+                tag_name: "expectedOutcome"
+                children: [
+                    Text {
+                        "The application should function correctly with the new settings applied.
+  "
+                    }
+                ]
+            }
+            Element {
+                tag_name: "tags"
+                children: [
+                    Element {
+                        tag_name: "tag"
+                        children: [
+                            Text {
+                                "UI"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "tag"
+                        children: [
+                            Text {
+                                "Settings"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "tag"
+                        children: [
+                            Text {
+                                "Dark Mode"
+                            }
+                        ]
+                    }
+                ]
+            }
+            Element {
+                tag_name: "priority"
+                children: [
+                    Text {
+                        "High"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "createdDate"
+                children: [
+                    Text {
+                        "2023-10-01"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "lastModifiedDate"
+                children: [
+                    Text {
+                        "2023-10-02"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "author"
+                children: [
+                    Text {
+                        "Test Author"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "status"
+                children: [
+                    Text {
+                        "Open"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "attachments"
+                children: [
+                    Element {
+                        tag_name: "attachment"
+                        children: [
+                            Element {
+                                tag_name: "fileName"
+                                children: [
+                                    Text {
+                                        "test_screenshot.png"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "fileType"
+                                children: [
+                                    Text {
+                                        "image/png"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "fileSize"
+                                children: [
+                                    Text {
+                                        "102400"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "description"
+                                children: [
+                                    Text {
+                                        "Screenshot of the application in dark mode."
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "attachment"
+                        children: [
+                            Element {
+                                tag_name: "fileName"
+                                children: [
+                                    Text {
+                                        "test_log.txt"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "fileType"
+                                children: [
+                                    Text {
+                                        "text/plain"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "fileSize"
+                                children: [
+                                    Text {
+                                        "2048"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "description"
+                                children: [
+                                    Text {
+                                        "Log file of the test execution."
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+            Element {
+                tag_name: "comments"
+                children: [
+                    Element {
+                        tag_name: "comment"
+                        children: [
+                            Element {
+                                tag_name: "author"
+                                children: [
+                                    Text {
+                                        "Tester1"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "date"
+                                children: [
+                                    Text {
+                                        "2023-10-01"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "text"
+                                children: [
+                                    Text {
+                                        "Initial test case created."
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "comment"
+                        children: [
+                            Element {
+                                tag_name: "author"
+                                children: [
+                                    Text {
+                                        "Tester2"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "date"
+                                children: [
+                                    Text {
+                                        "2023-10-02"
+                                    }
+                                ]
+                            }
+                            Element {
+                                tag_name: "text"
+                                children: [
+                                    Text {
+                                        "Reviewed and approved the test case."
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
