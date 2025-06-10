@@ -4,6 +4,8 @@
 
 #![allow(unused, dead_code)]
 
+use log::{debug, warn};
+
 use core::ops::Range;
 use memchr::memchr_iter;
 use std::fmt::{self, Debug};
@@ -63,10 +65,8 @@ impl Document {
         let attr_count = memchr_iter(b'=', xml.as_slice()).count();
         node_count += (node_count / 10) + 1; // Add 10% buffer for nodes
 
-        if cfg!(feature = "verbose") {
-            println!("Estimated node count: {}", node_count);
-            println!("Estimated attribute count: {}", attr_count);
-        }
+        debug!("Estimated node count: {}", node_count);
+        debug!("Estimated attribute count: {}", attr_count);
 
         let mut doc = Document {
             nodes: Vec::with_capacity(node_count + 1), // +1 for root node
@@ -81,25 +81,21 @@ impl Document {
         doc.nodes.shrink_to_fit();
         doc.attributes.shrink_to_fit();
 
-        if cfg!(feature = "verbose") {
-            println!(
-                "Document created with {} nodes and {} attributes",
-                doc.nodes.len(),
-                doc.attributes.len()
-            );
-        }
+        warn!(
+            "Document created with {} nodes and {} attributes",
+            doc.nodes.len(),
+            doc.attributes.len()
+        );
 
-        if node_count < doc.nodes.len() {
-            println!(
-                "Warning: Expected {} nodes, but found {}",
-                node_count,
-                doc.nodes.len()
-            );
-        }
+        warn!(
+            "Warning: Expected {} nodes, but found {}",
+            node_count,
+            doc.nodes.len()
+        );
 
         if attr_count < doc.attributes.len() {
-            println!(
-                "Warning: Expected {} attributes, but found {}",
+            warn!(
+                "Expected {} attributes, but found {}",
                 attr_count,
                 doc.attributes.len()
             );
