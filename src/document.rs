@@ -43,8 +43,8 @@ impl Document {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root = document.root().unwrap();
@@ -52,7 +52,7 @@ impl Document {
     /// let child = root.first_child().unwrap();
     /// assert_eq!(child.tag_name(), "child");
     /// let child_text = child.first_child().unwrap();
-    /// assert_eq!(child_text.text(), "Text");
+    /// assert_eq!(child_text.text().unwrap(), "Text");
     /// ```
     /// # Notes
     /// - The `Document` struct is designed to handle XML documents and provides methods for navigating the document tree.
@@ -76,7 +76,7 @@ impl Document {
         if doc.nodes.capacity() <= node_count || doc.attributes.capacity() < attr_count {
             return Err(ParseXmlError::NotEnoughMemory);
         }
-        doc.nodes.push(NodeInfo::new(0, 0, NodeType::Head, 0));
+        doc.nodes.push(NodeInfo::new(0, 0, NodeType::Head));
         doc.parse()?;
         doc.nodes.shrink_to_fit();
         doc.attributes.shrink_to_fit();
@@ -147,8 +147,8 @@ impl Document {
     ///
     /// # Example
     /// ```rust
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let child_node = document.get_node(2).unwrap(); // Assuming 2 is the index of the child node
@@ -188,12 +188,11 @@ impl Document {
 
     /// Adds a new node to the document.
     /// This method allows adding a new node to the document tree, setting its parent,
-    /// type, and position in the XML source.
+    /// and type in the XML source.
     ///
     ///# Arguments
     /// - `parent_idx`: The index of the parent node.
     /// - `node_type`: The type of the node to be added (e.g., element, text).
-    /// - `position`: The position of the node in the XML source.
     ///
     /// # Returns
     /// - `Ok(NodeIdx)`: The index of the newly added node.
@@ -202,7 +201,6 @@ impl Document {
         &mut self,
         parent_idx: NodeIdx,
         mut node_type: NodeType,
-        position: XmlIdx,
     ) -> Result<NodeIdx, ParseXmlError> {
         let node_idx = self.nodes.len() as NodeIdx;
 
@@ -214,7 +212,7 @@ impl Document {
             *attributes = self.attributes.len() as AttrIdx..self.attributes.len() as AttrIdx;
         }
 
-        let mut node_info = NodeInfo::new(node_idx, parent_idx, node_type, position);
+        let mut node_info = NodeInfo::new(node_idx, parent_idx, node_type);
         let parent_info = &mut self.nodes[parent_idx as usize];
 
         if parent_info.first_child_idx() == 0 {
@@ -273,7 +271,7 @@ impl Document {
     /// - `range`: A reference to an `XmlRange` that specifies the start and end indices of the desired substring.
     /// # Returns
     /// - `&str`: A string slice containing the XML content from the specified range.
-    pub fn get_str_from_range(&self, range: &XmlRange) -> &str {
+    pub fn get_str_from_range<'xml>(&'xml self, range: &XmlRange) -> &'xml str {
         let xml_content = &self.xml[range.start as usize..range.end as usize];
         std::str::from_utf8(xml_content).unwrap_or("non valid utf-8")
     }
@@ -339,7 +337,7 @@ impl<'input> fmt::Debug for Document {
                     writeln_indented!(indent, f, "}}");
                 } else if node.is_text() {
                     writeln_indented!(indent, f, "Text {{");
-                    writeln_indented!(indent, f, "    \"{}\"", node.text());
+                    writeln_indented!(indent, f, "    \"{}\"", node.text().unwrap_or("No text"));
                     writeln_indented!(indent, f, "}}");
                     //writeln_indented!(indent, f, "{:?}", node);
                     // } else if node.is_root() {

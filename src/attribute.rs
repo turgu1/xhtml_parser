@@ -43,7 +43,7 @@ pub struct Attribute<'a> {
     data: &'a AttributeInfo,
 }
 
-impl<'a> Attribute<'a> {
+impl<'xml> Attribute<'xml> {
     /// Returns the name of the attribute as a string slice.
     ///
     /// # Returns
@@ -53,12 +53,18 @@ impl<'a> Attribute<'a> {
         self.doc.get_str_from_range(&self.data.name)
     }
 
+    /// Returns true if the attribute's name matches the given string.
+    #[inline]
+    pub fn is(&self, name: &str) -> bool {
+        self.name() == name
+    }
+
     /// Returns the value of the attribute as a string slice.
     ///
     /// # Returns  
     /// A string slice containing the attribute value
     #[inline]
-    pub fn value(&self) -> &str {
+    pub fn value(&self) -> &'xml str {
         self.doc.get_str_from_range(&self.data.value)
     }
 }

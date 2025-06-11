@@ -36,3 +36,8 @@ pub mod node;
 pub mod node_info;
 pub mod node_type;
 pub mod parser;
+
+pub use attribute::Attribute;
+pub use document::Document;
+pub use node::Node;
+pub use node_type::NodeType;

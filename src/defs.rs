@@ -20,3 +20,16 @@ pub enum ParseXmlError {
     InternalError,
     NotEnoughMemory,
 }
+
+impl std::fmt::Display for ParseXmlError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ParseXmlError::InvalidXml(msg) => write!(f, "Invalid XML: {}", msg),
+            ParseXmlError::NoMoreSpace => write!(f, "No more space available for parsing"),
+            ParseXmlError::InternalError => write!(f, "Internal error occurred during parsing"),
+            ParseXmlError::NotEnoughMemory => {
+                write!(f, "Not enough memory to complete the operation")
+            }
+        }
+    }
+}

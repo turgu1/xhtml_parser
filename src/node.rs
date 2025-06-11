@@ -8,8 +8,8 @@
 //! # Example
 //!
 //! ```
-//! use xhtml_parser::document::Document;
-//! use xhtml_parser::node::Node;
+//! use xhtml_parser::Document;
+//! use xhtml_parser::Node;
 //!
 //! let xml_data = b"<root><child>Text</child></root>".to_vec();
 //! let document = Document::new(xml_data).unwrap();
@@ -17,7 +17,7 @@
 //! let child_node = root_node.first_child().unwrap();
 //! assert_eq!(child_node.tag_name(), "child");
 //! let child_node = child_node.first_child().unwrap();
-//! assert_eq!(child_node.text(), "Text");
+//! assert_eq!(child_node.text().unwrap(), "Text");
 //! assert!(!child_node.is_element());
 //! assert!(child_node.is_text());
 //! ```
@@ -33,7 +33,7 @@
 //! This module is part of the `xhtml_parser` crate and is designed to work with XML documents.
 
 use crate::attribute::Attributes;
-use crate::defs::NodeIdx;
+use crate::defs::{NodeIdx, XmlIdx};
 use crate::document::Document;
 use crate::node_info::NodeInfo;
 use crate::node_type::NodeType;
@@ -74,8 +74,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
@@ -89,25 +89,31 @@ impl<'xml> Node<'xml> {
         }
     }
 
+    /// Returns true if the node's tag name matches the provided tag name, false otherwise.
+    #[inline]
+    pub fn is(&self, tag_name: &str) -> bool {
+        self.tag_name() == tag_name
+    }
+
     /// Returns the text content of the node.
     /// If the node is not a text node, it returns an empty string.
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
-    /// let xml_data = b"<root>Text</root>".to_vec();
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
+    /// let xml_data = b"<root>The Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let child_node = root_node.first_child().unwrap();
     /// assert!(child_node.is_text());
-    /// let text_content = child_node.text();
-    /// assert_eq!(text_content, "Text");
+    /// let text_content = child_node.text().unwrap();
+    /// assert_eq!(text_content, "The Text");
     /// ```
-    pub fn text(&self) -> &str {
+    pub fn text(&self) -> Option<&'xml str> {
         match &self.node_info.node_type() {
-            NodeType::Text(text_range) => self.doc.get_str_from_range(text_range),
-            _ => "", // No tag name for non-element nodes
+            NodeType::Text(text_range) => Some(self.doc.get_str_from_range(text_range)),
+            _ => None,
         }
     }
 
@@ -115,8 +121,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// use xhtml_parser::attribute::Attributes;
     /// let xml_data = b"<root name=\"The root\" id=\"1\">Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -136,8 +142,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let node = document.root().unwrap();    
@@ -159,8 +165,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
@@ -185,8 +191,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
@@ -210,8 +216,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
@@ -237,8 +243,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
@@ -265,8 +271,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
@@ -280,8 +286,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
@@ -315,18 +321,18 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
-    /// if let Some(child) = root_node.find_child("child2") {
+    /// if let Some(child) = root_node.get_child("child2") {
     ///     assert_eq!(child.tag_name(), "child2");
     /// } else {
     ///     panic!("Child node not found");
     /// }
     /// ```
-    pub fn find_child(&self, tag_name: &str) -> Option<Node<'xml>> {
+    pub fn get_child(&self, tag_name: &str) -> Option<Node<'xml>> {
         if self.node_info.first_child_idx() == 0 {
             return None;
         }
@@ -353,19 +359,19 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let child_node = root_node.first_child().unwrap();
-    /// if let Some(sibling) = child_node.find_sibling("child2") {
+    /// if let Some(sibling) = child_node.get_sibling("child2") {
     ///     assert_eq!(sibling.tag_name(), "child2");
     /// } else {
     ///     panic!("Sibling node not found");
     /// }
     /// ```
-    pub fn find_sibling(&self, tag_name: &str) -> Option<Node<'xml>> {
+    pub fn get_sibling(&self, tag_name: &str) -> Option<Node<'xml>> {
         if let Some(parent_idx) = self.node_info.parent_idx() {
             let parent_node_info = &self.doc.nodes[parent_idx as usize];
             if parent_node_info.first_child_idx() == 0 {
@@ -396,22 +402,22 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root name=\"value\">Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
-    /// if let Some(value) = root_node.find_attribute("name") {
+    /// if let Some(value) = root_node.get_attribute("name") {
     ///     assert_eq!(value, "value");
     /// } else {
     ///     panic!("Attribute not found");
     /// }
     /// ```
     #[inline]
-    pub fn find_attribute(&self, name: &str) -> Option<String> {
+    pub fn get_attribute(&self, name: &str) -> Option<&'xml str> {
         for attr in self.attributes() {
             if attr.name() == name {
-                return Some(attr.value().to_string());
+                return Some(attr.value());
             }
         }
         None
@@ -422,8 +428,8 @@ impl<'xml> Node<'xml> {
     ///
     /// # Example
     /// ```
-    /// use xhtml_parser::document::Document;
-    /// use xhtml_parser::node::Node;
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
@@ -445,6 +451,12 @@ impl<'xml> Node<'xml> {
         } else {
             None // Root node has no parent
         }
+    }
+
+    /// Returns the position of this node in the XML source.
+    #[inline]
+    pub fn position(&self) -> XmlIdx {
+        self.node_info.position()
     }
 }
 

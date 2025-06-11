@@ -1,4 +1,4 @@
-//! Parser for XML documents.
+//! Parser for XML/XHTML documents.
 //!
 //! This module provides functionality to parse XML content, handling various node types and attributes.
 //! It defines the `parser()` method for processing XML data.
@@ -701,7 +701,6 @@ impl Document {
                             name: name_range,
                             attributes: 0..0, // Placeholder for attributes range
                         },
-                        start,
                     )?;
 
                     parent_idx = node_idx;
@@ -842,7 +841,7 @@ impl Document {
                             start..i
                         };
                         // Add text node with content
-                        self.add_node(parent_idx, NodeType::Text(text_range), start)?;
+                        self.add_node(parent_idx, NodeType::Text(text_range))?;
                     }
                     State::ReadTag
                 }

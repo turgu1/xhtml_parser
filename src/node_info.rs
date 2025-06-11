@@ -1,14 +1,13 @@
 /// Represents information about a node in the XML/HTML tree structure.
 ///
 /// `NodeInfo` contains references to the node's parent, siblings, and children,
-/// as well as its position in the source and its type.
+/// as well as its type.
 ///
 /// # Fields
 /// - `parent_idx`: The index of the parent node. `0` indicates the root node.
 /// - `prev_sibling`: The index of the previous sibling node, or the last child of the parent if this is the first child.
 /// - `next_sibling`: The index of the next sibling node, or the node following the parent.
 /// - `first_child`: The index of the first child node of this node.
-/// - `position`: The position of this node in the XML source.
 /// - `node_type`: The type of this node (e.g., element, text, comment).
 use crate::defs::{NodeIdx, XmlIdx};
 use crate::node_type::NodeType;
@@ -20,7 +19,6 @@ pub struct NodeInfo {
     prev_sibling: NodeIdx, // previous sibling, or last child of parent
     next_sibling: NodeIdx, // Could be next_sibling or the node following the parent
     first_child: NodeIdx,  // First child of this node
-    position: XmlIdx,
     node_type: NodeType,
 }
 
@@ -31,21 +29,14 @@ impl<'xml> NodeInfo {
     /// - `node_idx`: The index of the node (not used in this struct, but could be useful for other purposes).
     /// - `parent_idx`: The index of the parent node.
     /// - `node_type`: The type of the node (e.g., element, text, comment).
-    /// - `position`: The byte position of the node in the XML source.
     #[inline]
-    pub fn new(
-        node_idx: NodeIdx,
-        parent_idx: NodeIdx,
-        node_type: NodeType,
-        position: XmlIdx,
-    ) -> Self {
+    pub fn new(node_idx: NodeIdx, parent_idx: NodeIdx, node_type: NodeType) -> Self {
         NodeInfo {
             //node_idx,
             parent_idx,
             next_sibling: 0,
             prev_sibling: node_idx, // Initially set to itself
             first_child: 0,
-            position,
             node_type,
         }
     }
@@ -85,9 +76,17 @@ impl<'xml> NodeInfo {
     }
 
     /// Returns the position of this node in the XML source.
+    ///
+    /// For Element nodes, this is the start position of the element name.
+    /// For Text nodes, this is the start position of the text content.
+    /// For the head node, this is always `0`.
     #[inline]
     pub fn position(&self) -> XmlIdx {
-        self.position
+        match &self.node_type {
+            NodeType::Element { name, .. } => name.start,
+            NodeType::Text(range) => range.start,
+            NodeType::Head => 0,
+        }
     }
 
     /// Returns the type of this node.
