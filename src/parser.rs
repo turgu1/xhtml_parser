@@ -428,14 +428,14 @@ impl Document {
             .collect::<String>()
     }
 
-    /// Translates XML entities to their UTF-8 representations.
+    /// Translates XML escape sequences to their UTF-8 representations.
     ///
-    /// This method handles three types of entity references:
+    /// This method handles three types of escape sequences:
     /// - Named entities (e.g., `&amp;`, `&lt;`) using the predefined entities map
     /// - Decimal character references (e.g., `&#65;`)
     /// - Hexadecimal character references (e.g., `&#x41;`)
     ///
-    /// The method processes the entity reference starting after the '&' character
+    /// The method processes the escape sequence starting after the '&' character
     /// and writes the UTF-8 bytes to the specified position in the XML buffer.
     ///
     /// # Arguments
@@ -445,9 +445,9 @@ impl Document {
     /// # Returns
     /// `Some((next_from, next_to))` if translation succeeds, where `next_from` is
     /// the position after the semicolon and `next_to` is the position after the
-    /// written UTF-8 bytes. Returns `None` if the entity is invalid.
+    /// written UTF-8 bytes. Returns `None` if the escape sequence is invalid.
     #[inline]
-    fn translate_entity(&mut self, from: XmlIdx, to: XmlIdx) -> Option<(XmlIdx, XmlIdx)> {
+    fn translate_sequence(&mut self, from: XmlIdx, to: XmlIdx) -> Option<(XmlIdx, XmlIdx)> {
         let mut from = from;
         let number = self.xml[from as usize] == HASH;
         if number {
@@ -490,19 +490,19 @@ impl Document {
         Some((from + 1, to + len as XmlIdx)) // pass the semicolon
     }
 
-    /// Processes XML content by translating entity references in-place.
+    /// Processes XML content by translating escape sequences in-place.
     ///
     /// This method scans through the specified range looking for '&' characters
-    /// that indicate entity references. When found, it translates the entities
+    /// that indicate escape sequences. When found, it translates the sequences
     /// to their UTF-8 representations and compacts the content by moving it
-    /// forward in the buffer, effectively replacing entities with their values.
+    /// forward in the buffer, effectively replacing sequences with their values.
     ///
     /// # Arguments
     /// * `range` - The byte range in the XML buffer to process
     ///
     /// # Returns
     /// `Some((start, end))` where `start` is the original start position and
-    /// `end` is the new end position after entity translation and compaction.
+    /// `end` is the new end position after sequence translation and compaction.
     /// Returns `None` if processing fails.
     #[inline]
     fn parse_escapes(&mut self, range: &XmlRange) -> Option<(XmlIdx, XmlIdx)> {
@@ -530,11 +530,11 @@ impl Document {
                         .copy_within(from as usize..ampersand_pos as usize, to as usize);
                     to += ampersand_pos - from;
                 }
-                if let Some((new_from, new_to)) = self.translate_entity(ampersand_pos + 1, to) {
+                if let Some((new_from, new_to)) = self.translate_sequence(ampersand_pos + 1, to) {
                     from = new_from;
                     to = new_to;
                 } else {
-                    // Invalid entity, just skip the '&'
+                    // Invalid escape sequence, just skip the '&'
                     from += 1;
                 }
             }
@@ -604,7 +604,7 @@ impl Document {
     /// - Invalid character sequences
     /// - Malformed attributes
     /// - Unexpected end of document
-    pub fn parse(&mut self) -> Result<(), ParseXmlError> {
+    pub(crate) fn parse(&mut self) -> Result<(), ParseXmlError> {
         let root_idx: NodeIdx = 0;
 
         //let contents = self.xml.as_slice();

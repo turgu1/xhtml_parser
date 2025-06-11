@@ -45,13 +45,19 @@ impl Document {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root = document.root().unwrap();
+    ///
     /// assert_eq!(root.tag_name(), "root");
+    ///
     /// let child = root.first_child().unwrap();
+    ///
     /// assert_eq!(child.tag_name(), "child");
+    ///
     /// let child_text = child.first_child().unwrap();
+    ///
     /// assert_eq!(child_text.text().unwrap(), "Text");
     /// ```
     /// # Notes
@@ -149,19 +155,27 @@ impl Document {
     /// ```rust
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let child_node = document.get_node(2).unwrap(); // Assuming 2 is the index of the child node
     /// let parent_idx = document.get_parent_idx(child_node.idx()).unwrap();
+    ///
     /// assert_eq!(parent_idx, 1); // The parent of the child node is the root node (index 1)
+    ///
     /// let root_node = document.root().unwrap();
+    ///
     /// assert_eq!(root_node.idx(), 1); // The root node index is 1
+    ///
     /// // Attempting to get the parent of the root node should return an error
     /// let parent_of_root = document.get_parent_idx(root_node.idx());
+    ///
     /// assert!(parent_of_root.is_err(), "Root node should not have a parent");
+    ///
     /// // Attempting to get the parent of an invalid node index should return an error
     /// let invalid_node_idx = 100; // Assuming this index is out of bounds
     /// let invalid_parent = document.get_parent_idx(invalid_node_idx);
+    ///
     /// assert!(invalid_parent.is_err(), "Invalid node index should return an error");
     /// ```
     /// # Notes

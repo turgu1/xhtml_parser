@@ -428,14 +428,14 @@
 <a href=#428 id=428 data-nosnippet>428</a>            .collect::&lt;String&gt;()
 <a href=#429 id=429 data-nosnippet>429</a>    }
 <a href=#430 id=430 data-nosnippet>430</a>
-<a href=#431 id=431 data-nosnippet>431</a>    <span class="doccomment">/// Translates XML entities to their UTF-8 representations.
+<a href=#431 id=431 data-nosnippet>431</a>    <span class="doccomment">/// Translates XML escape sequences to their UTF-8 representations.
 <a href=#432 id=432 data-nosnippet>432</a>    ///
-<a href=#433 id=433 data-nosnippet>433</a>    /// This method handles three types of entity references:
+<a href=#433 id=433 data-nosnippet>433</a>    /// This method handles three types of escape sequences:
 <a href=#434 id=434 data-nosnippet>434</a>    /// - Named entities (e.g., `&amp;amp;`, `&amp;lt;`) using the predefined entities map
 <a href=#435 id=435 data-nosnippet>435</a>    /// - Decimal character references (e.g., `&amp;#65;`)
 <a href=#436 id=436 data-nosnippet>436</a>    /// - Hexadecimal character references (e.g., `&amp;#x41;`)
 <a href=#437 id=437 data-nosnippet>437</a>    ///
-<a href=#438 id=438 data-nosnippet>438</a>    /// The method processes the entity reference starting after the '&amp;' character
+<a href=#438 id=438 data-nosnippet>438</a>    /// The method processes the escape sequence starting after the '&amp;' character
 <a href=#439 id=439 data-nosnippet>439</a>    /// and writes the UTF-8 bytes to the specified position in the XML buffer.
 <a href=#440 id=440 data-nosnippet>440</a>    ///
 <a href=#441 id=441 data-nosnippet>441</a>    /// # Arguments
@@ -445,9 +445,9 @@
 <a href=#445 id=445 data-nosnippet>445</a>    /// # Returns
 <a href=#446 id=446 data-nosnippet>446</a>    /// `Some((next_from, next_to))` if translation succeeds, where `next_from` is
 <a href=#447 id=447 data-nosnippet>447</a>    /// the position after the semicolon and `next_to` is the position after the
-<a href=#448 id=448 data-nosnippet>448</a>    /// written UTF-8 bytes. Returns `None` if the entity is invalid.
+<a href=#448 id=448 data-nosnippet>448</a>    /// written UTF-8 bytes. Returns `None` if the escape sequence is invalid.
 <a href=#449 id=449 data-nosnippet>449</a>    </span><span class="attr">#[inline]
-<a href=#450 id=450 data-nosnippet>450</a>    </span><span class="kw">fn </span>translate_entity(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: XmlIdx, to: XmlIdx) -&gt; <span class="prelude-ty">Option</span>&lt;(XmlIdx, XmlIdx)&gt; {
+<a href=#450 id=450 data-nosnippet>450</a>    </span><span class="kw">fn </span>translate_sequence(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: XmlIdx, to: XmlIdx) -&gt; <span class="prelude-ty">Option</span>&lt;(XmlIdx, XmlIdx)&gt; {
 <a href=#451 id=451 data-nosnippet>451</a>        <span class="kw">let </span><span class="kw-2">mut </span>from = from;
 <a href=#452 id=452 data-nosnippet>452</a>        <span class="kw">let </span>number = <span class="self">self</span>.xml[from <span class="kw">as </span>usize] == HASH;
 <a href=#453 id=453 data-nosnippet>453</a>        <span class="kw">if </span>number {
@@ -490,19 +490,19 @@
 <a href=#490 id=490 data-nosnippet>490</a>        <span class="prelude-val">Some</span>((from + <span class="number">1</span>, to + len <span class="kw">as </span>XmlIdx)) <span class="comment">// pass the semicolon
 <a href=#491 id=491 data-nosnippet>491</a>    </span>}
 <a href=#492 id=492 data-nosnippet>492</a>
-<a href=#493 id=493 data-nosnippet>493</a>    <span class="doccomment">/// Processes XML content by translating entity references in-place.
+<a href=#493 id=493 data-nosnippet>493</a>    <span class="doccomment">/// Processes XML content by translating escape sequences in-place.
 <a href=#494 id=494 data-nosnippet>494</a>    ///
 <a href=#495 id=495 data-nosnippet>495</a>    /// This method scans through the specified range looking for '&amp;' characters
-<a href=#496 id=496 data-nosnippet>496</a>    /// that indicate entity references. When found, it translates the entities
+<a href=#496 id=496 data-nosnippet>496</a>    /// that indicate escape sequences. When found, it translates the sequences
 <a href=#497 id=497 data-nosnippet>497</a>    /// to their UTF-8 representations and compacts the content by moving it
-<a href=#498 id=498 data-nosnippet>498</a>    /// forward in the buffer, effectively replacing entities with their values.
+<a href=#498 id=498 data-nosnippet>498</a>    /// forward in the buffer, effectively replacing sequences with their values.
 <a href=#499 id=499 data-nosnippet>499</a>    ///
 <a href=#500 id=500 data-nosnippet>500</a>    /// # Arguments
 <a href=#501 id=501 data-nosnippet>501</a>    /// * `range` - The byte range in the XML buffer to process
 <a href=#502 id=502 data-nosnippet>502</a>    ///
 <a href=#503 id=503 data-nosnippet>503</a>    /// # Returns
 <a href=#504 id=504 data-nosnippet>504</a>    /// `Some((start, end))` where `start` is the original start position and
-<a href=#505 id=505 data-nosnippet>505</a>    /// `end` is the new end position after entity translation and compaction.
+<a href=#505 id=505 data-nosnippet>505</a>    /// `end` is the new end position after sequence translation and compaction.
 <a href=#506 id=506 data-nosnippet>506</a>    /// Returns `None` if processing fails.
 <a href=#507 id=507 data-nosnippet>507</a>    </span><span class="attr">#[inline]
 <a href=#508 id=508 data-nosnippet>508</a>    </span><span class="kw">fn </span>parse_escapes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: <span class="kw-2">&amp;</span>XmlRange) -&gt; <span class="prelude-ty">Option</span>&lt;(XmlIdx, XmlIdx)&gt; {
@@ -530,11 +530,11 @@
 <a href=#530 id=530 data-nosnippet>530</a>                        .copy_within(from <span class="kw">as </span>usize..ampersand_pos <span class="kw">as </span>usize, to <span class="kw">as </span>usize);
 <a href=#531 id=531 data-nosnippet>531</a>                    to += ampersand_pos - from;
 <a href=#532 id=532 data-nosnippet>532</a>                }
-<a href=#533 id=533 data-nosnippet>533</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>((new_from, new_to)) = <span class="self">self</span>.translate_entity(ampersand_pos + <span class="number">1</span>, to) {
+<a href=#533 id=533 data-nosnippet>533</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>((new_from, new_to)) = <span class="self">self</span>.translate_sequence(ampersand_pos + <span class="number">1</span>, to) {
 <a href=#534 id=534 data-nosnippet>534</a>                    from = new_from;
 <a href=#535 id=535 data-nosnippet>535</a>                    to = new_to;
 <a href=#536 id=536 data-nosnippet>536</a>                } <span class="kw">else </span>{
-<a href=#537 id=537 data-nosnippet>537</a>                    <span class="comment">// Invalid entity, just skip the '&amp;'
+<a href=#537 id=537 data-nosnippet>537</a>                    <span class="comment">// Invalid escape sequence, just skip the '&amp;'
 <a href=#538 id=538 data-nosnippet>538</a>                    </span>from += <span class="number">1</span>;
 <a href=#539 id=539 data-nosnippet>539</a>                }
 <a href=#540 id=540 data-nosnippet>540</a>            }
@@ -604,7 +604,7 @@
 <a href=#604 id=604 data-nosnippet>604</a>    /// - Invalid character sequences
 <a href=#605 id=605 data-nosnippet>605</a>    /// - Malformed attributes
 <a href=#606 id=606 data-nosnippet>606</a>    /// - Unexpected end of document
-<a href=#607 id=607 data-nosnippet>607</a>    </span><span class="kw">pub fn </span>parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseXmlError&gt; {
+<a href=#607 id=607 data-nosnippet>607</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseXmlError&gt; {
 <a href=#608 id=608 data-nosnippet>608</a>        <span class="kw">let </span>root_idx: NodeIdx = <span class="number">0</span>;
 <a href=#609 id=609 data-nosnippet>609</a>
 <a href=#610 id=610 data-nosnippet>610</a>        <span class="comment">//let contents = self.xml.as_slice();

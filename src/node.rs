@@ -15,8 +15,11 @@
 //! let document = Document::new(xml_data).unwrap();
 //! let root_node = document.root().unwrap();
 //! let child_node = root_node.first_child().unwrap();
+//!
 //! assert_eq!(child_node.tag_name(), "child");
+//!
 //! let child_node = child_node.first_child().unwrap();
+//!
 //! assert_eq!(child_node.text().unwrap(), "Text");
 //! assert!(!child_node.is_element());
 //! assert!(child_node.is_text());
@@ -76,10 +79,12 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let tag_name = root_node.tag_name();
+    ///
     /// assert_eq!(tag_name, "root");
     /// ```
     pub fn tag_name(&self) -> &str {
@@ -102,12 +107,16 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root>The Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let child_node = root_node.first_child().unwrap();
+    ///
     /// assert!(child_node.is_text());
+    ///
     /// let text_content = child_node.text().unwrap();
+    ///
     /// assert_eq!(text_content, "The Text");
     /// ```
     pub fn text(&self) -> Option<&'xml str> {
@@ -123,11 +132,12 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
-    /// use xhtml_parser::attribute::Attributes;
+    ///
     /// let xml_data = b"<root name=\"The root\" id=\"1\">Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let attributes: Vec<_> = root_node.attributes().collect();
+    ///
     /// assert_eq!(attributes.len(), 2);
     /// assert_eq!(attributes[0].name(), "name");
     /// assert_eq!(attributes[0].value(), "The root");
@@ -144,9 +154,11 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let node = document.root().unwrap();    
+    ///
     /// assert_eq!(node.first_child().unwrap().tag_name(), "child1");
     /// ```
     pub fn first_child(&self) -> Option<Node<'xml>> {
@@ -167,10 +179,12 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let last_child = root_node.last_child().unwrap();
+    ///
     /// assert_eq!(last_child.tag_name(), "child2");
     /// ```
     pub fn last_child(&self) -> Option<Node<'xml>> {
@@ -193,10 +207,12 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let next_sibling = root_node.first_child().unwrap().next_sibling().unwrap();
+    ///
     /// assert_eq!(next_sibling.tag_name(), "child2");
     /// ```
     #[inline]
@@ -218,10 +234,12 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let prev_sibling = root_node.last_child().unwrap().prev_sibling().unwrap();
+    ///
     /// assert_eq!(prev_sibling.tag_name(), "child1");
     /// ```
     #[inline]
@@ -245,10 +263,12 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let children: Vec<_> = root_node.children().collect();
+    ///
     /// assert_eq!(children.len(), 2);
     /// assert_eq!(children[0].tag_name(), "child1");
     /// assert_eq!(children[1].tag_name(), "child2");
@@ -273,9 +293,11 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
+    ///
     /// assert!(root_node.is_root());
     /// ```
     pub fn is_root(&self) -> bool {
@@ -288,9 +310,11 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
+    ///
     /// assert!(root_node.has_children());
     /// ```
     #[inline]
@@ -323,9 +347,11 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
+    ///
     /// if let Some(child) = root_node.get_child("child2") {
     ///     assert_eq!(child.tag_name(), "child2");
     /// } else {
@@ -361,10 +387,12 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let child_node = root_node.first_child().unwrap();
+    ///
     /// if let Some(sibling) = child_node.get_sibling("child2") {
     ///     assert_eq!(sibling.tag_name(), "child2");
     /// } else {
@@ -404,9 +432,11 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root name=\"value\">Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
+    ///
     /// if let Some(value) = root_node.get_attribute("name") {
     ///     assert_eq!(value, "value");
     /// } else {
@@ -430,10 +460,12 @@ impl<'xml> Node<'xml> {
     /// ```
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
+    ///
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let child_node = root_node.first_child().unwrap();
+    ///
     /// if let Some(parent) = child_node.parent() {
     ///     assert_eq!(parent.tag_name(), "root");
     /// } else {
