@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["attribute","defs","document","node","node_info","node_type","parser"]};

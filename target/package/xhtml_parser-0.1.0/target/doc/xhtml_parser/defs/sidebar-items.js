@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ParseXmlError"],"type":["AttrIdx","AttributeRange","NodeIdx","NodeRange","XmlIdx","XmlRange"]};

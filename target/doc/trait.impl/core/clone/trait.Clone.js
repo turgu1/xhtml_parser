@@ -1,9 +1,0 @@
-(function() {
-    var implementors = Object.fromEntries([["xhtml_parser",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> for <a class=\"enum\" href=\"xhtml_parser/node_type/enum.NodeType.html\" title=\"enum xhtml_parser::node_type::NodeType\">NodeType</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> for <a class=\"struct\" href=\"xhtml_parser/attribute/struct.AttributeInfo.html\" title=\"struct xhtml_parser::attribute::AttributeInfo\">AttributeInfo</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> for <a class=\"struct\" href=\"xhtml_parser/node_info/struct.NodeInfo.html\" title=\"struct xhtml_parser::node_info::NodeInfo\">NodeInfo</a>"],["impl&lt;'a&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> for <a class=\"struct\" href=\"xhtml_parser/attribute/struct.Attributes.html\" title=\"struct xhtml_parser::attribute::Attributes\">Attributes</a>&lt;'a&gt;"],["impl&lt;'xml&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> for <a class=\"struct\" href=\"xhtml_parser/node/struct.Node.html\" title=\"struct xhtml_parser::node::Node\">Node</a>&lt;'xml&gt;"]]]]);
-    if (window.register_implementors) {
-        window.register_implementors(implementors);
-    } else {
-        window.pending_implementors = implementors;
-    }
-})()
-//{"start":57,"fragment_lengths":[1480]}
