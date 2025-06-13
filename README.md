@@ -8,8 +8,8 @@ The parsing process is limited to normal tags, attributes, and PCData content. N
 
 - No `unsafe` construct.
 - XML content must be UTF-8.
-- Namespace prefix are removed from tag and attribute names.
-- Standard XML entities (`&amp;`, `&lt;`, `&gt;`, `&apos;`, and `&quot;`), Unicode numerical character references (`&#xhhhh;` and `&#nnnn;`), and XHTML-related entities (as described [here](https://www.w3.org/TR/xhtml-modularization/dtd_module_defs.html#a_dtd_xhtml_character_entities)) are translated to their UTF-8 representation.
+- Namespace prefix are removed from tag and attribute names (`namespace_removal` feature).
+- Standard XML entities (`&amp;`, `&lt;`, `&gt;`, `&apos;`, and `&quot;`), Unicode numerical character references (`&#xhhhh;` and `&#nnnn;`), and XHTML-related entities (as described [here](https://www.w3.org/TR/xhtml-modularization/dtd_module_defs.html#a_dtd_xhtml_character_entities)) are translated to their UTF-8 representation (`parse_escapes` feature).
 
 The parser is open-source and can be freely used and modified under the terms of the MIT license.
 

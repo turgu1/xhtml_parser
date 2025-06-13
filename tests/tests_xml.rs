@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod xhtml_parser_tests {
     use xhtml_parser::document::Document;
+    use xhtml_parser::node::Node;
 
     use test_support::unit_test::UnitTest;
 
@@ -12,7 +13,7 @@ mod xhtml_parser_tests {
         let child_node = root_node.first_child().unwrap();
         assert_eq!(child_node.tag_name(), "child");
     }
-    
+
     #[test]
     fn test_simple_xml_files() {
         let unit_test = UnitTest::new("simple_test");
@@ -45,5 +46,18 @@ mod xhtml_parser_tests {
                 assert!(unit_test.check_result_with_file(&data, &file_name));
             }
         }
+    }
+
+    #[test]
+    fn test_descendant_iterator() {
+        let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
+        let document = Document::new(xml_data).unwrap();
+        let root_node = document.root().unwrap();
+        let descendants: Vec<Node> = document.descendants(root_node.idx()).collect();
+
+        assert_eq!(descendants.len(), 3); // child, Text, and totototo
+        assert!(descendants[0].is("child"));
+        assert_eq!(descendants[1].text().unwrap(), "Text");
+        assert!(descendants[2].is("totototo"));
     }
 }

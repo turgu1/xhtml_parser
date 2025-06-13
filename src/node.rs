@@ -16,7 +16,7 @@
 //! let root_node = document.root().unwrap();
 //! let child_node = root_node.first_child().unwrap();
 //!
-//! assert_eq!(child_node.tag_name(), "child");
+//! assert!(child_node.is("child"));
 //!
 //! let child_node = child_node.first_child().unwrap();
 //!
@@ -37,7 +37,7 @@
 
 use crate::attribute::Attributes;
 use crate::defs::{NodeIdx, XmlIdx};
-use crate::document::Document;
+use crate::document::{Document, Nodes};
 use crate::node_info::NodeInfo;
 use crate::node_type::NodeType;
 
@@ -78,7 +78,6 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -106,7 +105,6 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root>The Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -131,7 +129,6 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root name=\"The root\" id=\"1\">Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -153,13 +150,12 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let node = document.root().unwrap();    
     ///
-    /// assert_eq!(node.first_child().unwrap().tag_name(), "child1");
+    /// assert!(node.first_child().unwrap().is("child1"));
     /// ```
     pub fn first_child(&self) -> Option<Node<'xml>> {
         if self.node_info.first_child_idx() == 0 {
@@ -178,14 +174,13 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let last_child = root_node.last_child().unwrap();
     ///
-    /// assert_eq!(last_child.tag_name(), "child2");
+    /// assert!(last_child.is("child2"));
     /// ```
     pub fn last_child(&self) -> Option<Node<'xml>> {
         if self.node_info.first_child_idx() == 0 {
@@ -206,14 +201,13 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let next_sibling = root_node.first_child().unwrap().next_sibling().unwrap();
     ///
-    /// assert_eq!(next_sibling.tag_name(), "child2");
+    /// assert!(next_sibling.is("child2"));
     /// ```
     #[inline]
     pub fn next_sibling(&self) -> Option<Node<'xml>> {
@@ -233,14 +227,13 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let prev_sibling = root_node.last_child().unwrap().prev_sibling().unwrap();
     ///
-    /// assert_eq!(prev_sibling.tag_name(), "child1");
+    /// assert!(prev_sibling.is("child1"));
     /// ```
     #[inline]
     pub fn prev_sibling(&self) -> Option<Node<'xml>> {
@@ -262,7 +255,6 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -270,8 +262,8 @@ impl<'xml> Node<'xml> {
     /// let children: Vec<_> = root_node.children().collect();
     ///
     /// assert_eq!(children.len(), 2);
-    /// assert_eq!(children[0].tag_name(), "child1");
-    /// assert_eq!(children[1].tag_name(), "child2");
+    /// assert!(children[0].is("child1"));
+    /// assert!(children[1].is("child2"));
     /// ```
     pub fn children(&self) -> NodeChildren {
         if self.node_info.first_child_idx() == 0 {
@@ -287,12 +279,29 @@ impl<'xml> Node<'xml> {
         }
     }
 
+    /// Returns an iterator over all descendants of the node.
+    ///
+    /// This includes all children, grandchildren, and so on.
+    /// If the node has no descendants, it returns an empty iterator.
+    ///
+    /// # Example
+    /// ```
+    /// use xhtml_parser::Document;
+    ///
+    /// let xml_data = b"<root><child1><subchild/></child1><child2/></root>".to_vec();
+    /// let document = Document::new(xml_data).unwrap();
+    /// let root_node = document.root().unwrap();
+    /// let descendants: Vec<_> = root_node.descendants().collect();
+    /// ```
+    pub fn descendants(&self) -> Nodes<'xml> {
+        Nodes::descendants(self.doc, self.idx)
+    }
+
     /// Returns true if the node is the root node, false otherwise.
     ///
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -309,7 +318,6 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -346,14 +354,13 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     ///
     /// if let Some(child) = root_node.get_child("child2") {
-    ///     assert_eq!(child.tag_name(), "child2");
+    ///     assert!(child.is("child2"));
     /// } else {
     ///     panic!("Child node not found");
     /// }
@@ -368,7 +375,7 @@ impl<'xml> Node<'xml> {
             let current_node_info = &self.doc.nodes[current_idx as usize];
             let current_node = Node::new(current_idx, current_node_info, self.doc);
 
-            if current_node.tag_name() == tag_name {
+            if current_node.is(tag_name) {
                 return Some(current_node);
             }
 
@@ -386,7 +393,6 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -394,7 +400,7 @@ impl<'xml> Node<'xml> {
     /// let child_node = root_node.first_child().unwrap();
     ///
     /// if let Some(sibling) = child_node.get_sibling("child2") {
-    ///     assert_eq!(sibling.tag_name(), "child2");
+    ///     assert!(sibling.is("child2"));
     /// } else {
     ///     panic!("Sibling node not found");
     /// }
@@ -411,7 +417,7 @@ impl<'xml> Node<'xml> {
                 let current_node_info = &self.doc.nodes[current_idx as usize];
                 let current_node = Node::new(current_idx, current_node_info, self.doc);
 
-                if current_node.tag_name() == tag_name {
+                if current_node.is(tag_name) {
                     return Some(current_node);
                 }
 
@@ -431,7 +437,6 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root name=\"value\">Text</root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -459,7 +464,6 @@ impl<'xml> Node<'xml> {
     /// # Example
     /// ```
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -467,7 +471,7 @@ impl<'xml> Node<'xml> {
     /// let child_node = root_node.first_child().unwrap();
     ///
     /// if let Some(parent) = child_node.parent() {
-    ///     assert_eq!(parent.tag_name(), "root");
+    ///     assert!(parent.is("root"));
     /// } else {
     ///     panic!("Child node has no parent");
     /// }
@@ -502,7 +506,24 @@ impl<'xml> PartialEq for Node<'xml> {
 }
 
 /// Iterator over node children.
-
+///
+/// This iterator allows traversing the children of a node in both forward and backward directions.
+/// It is designed to work with the `Node` struct, providing an easy way to access child nodes sequentially.
+///
+/// # Example
+///
+/// ```
+/// use xhtml_parser::Document;
+///
+/// let xml_data = b"<root><child1/><child2/></root>".to_vec();
+/// let document = Document::new(xml_data).unwrap();
+/// let root_node = document.root().unwrap();
+/// let children: Vec<_> = root_node.children().collect();
+///
+/// assert_eq!(children.len(), 2);
+/// assert!(children[0].is("child1"));
+/// assert!(children[1].is("child2"));
+/// ```
 pub struct NodeChildren<'a> {
     front: Option<Node<'a>>,
     back: Option<Node<'a>>,
@@ -511,6 +532,9 @@ pub struct NodeChildren<'a> {
 impl<'a> Iterator for NodeChildren<'a> {
     type Item = Node<'a>;
 
+    /// Returns the next child node in the iteration.
+    ///
+    /// If there are no more children, it returns None.
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.front == self.back {
@@ -526,6 +550,9 @@ impl<'a> Iterator for NodeChildren<'a> {
 }
 
 impl<'a> DoubleEndedIterator for NodeChildren<'a> {
+    /// Returns the previous child node in the iteration.
+    ///
+    /// If there are no more children, it returns None.
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.back == self.front {

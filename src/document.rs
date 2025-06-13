@@ -119,6 +119,28 @@ impl Document {
         }
     }
 
+    /// Checks if the document is empty.
+    ///
+    /// # Returns
+    /// - `true`: If the document contains only the head node (no other nodes).
+    /// - `false`: If the document contains nodes other than the head node.
+    fn is_empty(&self) -> bool {
+        self.nodes.len() <= 1 // Only the head node exists
+    }
+
+    /// Returns the index of the last node in the document.
+    ///
+    /// # Returns
+    /// - `NodeIdx`: The index of the last node in the document.
+    /// - `0`: If the document is empty (no nodes).
+    fn last_node_idx(&self) -> NodeIdx {
+        if self.is_empty() {
+            0 // No nodes, return 0
+        } else {
+            (self.nodes.len() - 1) as NodeIdx // Last node index
+        }
+    }
+
     /// Retrieves a node by its index.
     ///
     /// # Arguments
@@ -154,7 +176,6 @@ impl Document {
     /// # Example
     /// ```rust
     /// use xhtml_parser::Document;
-    /// use xhtml_parser::Node;
     ///
     /// let xml_data = b"<root><child>Text</child></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
@@ -289,6 +310,134 @@ impl Document {
         let xml_content = &self.xml[range.start as usize..range.end as usize];
         std::str::from_utf8(xml_content).unwrap_or("non valid utf-8")
     }
+
+    /// Returns an iterator over all nodes in the document.
+    ///
+    /// This method provides an iterator that traverses all nodes in the document, starting from the root node.
+    ///
+    /// # Returns
+    /// - `Nodes`: An iterator that yields `Node` instances in the order they appear in the document.
+    ///
+    /// # Example
+    /// ```rust
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
+    ///
+    /// let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
+    /// let document = Document::new(xml_data).unwrap();
+    /// let all_nodes: Vec<Node> = document.all_nodes().collect();
+    ///
+    /// assert_eq!(all_nodes.len(), 4); // root, child, Text, totototo
+    #[inline]
+    pub fn all_nodes(&self) -> Nodes {
+        Nodes::new(self)
+    }
+
+    /// Returns an iterator over the descendants of a given node.
+    ///
+    /// This method provides an iterator that traverses all descendant nodes of the specified node index.
+    ///
+    /// # Arguments
+    /// - `node_idx`: The index of the node whose descendants are to be iterated over.
+    ///
+    /// # Returns
+    /// - `Nodes`: An iterator that yields `Node` instances representing the descendants of the specified node.
+    ///
+    /// # Example
+    /// ```rust
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
+    ///
+    /// let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
+    /// let document = Document::new(xml_data).unwrap();
+    /// let root_node = document.root().unwrap();
+    /// let descendants: Vec<Node> = document.descendants(root_node.idx()).collect();
+    ///
+    /// assert_eq!(descendants.len(), 3); // child, Text, and totototo
+    /// assert!(descendants[0].is("child"));
+    /// assert_eq!(descendants[1].text().unwrap(), "Text");
+    /// assert!(descendants[2].is("totototo"));
+    /// ```
+    #[inline]
+    pub fn descendants(&self, node_idx: NodeIdx) -> Nodes {
+        Nodes::descendants(self, node_idx)
+    }
+
+    /// Returns the last descendant of a given node index.
+    ///
+    /// This method finds the last descendant node of the specified node index in the document.
+    ///
+    /// # Arguments
+    /// - `node_idx`: The index of the node whose last descendant is to be found.
+    ///
+    /// # Returns
+    /// - `NodeIdx`: The index of the last descendant node.
+    /// - `0`: If the node index is invalid or if there are no descendants for the root node.
+    ///
+    /// # Example
+    /// ```rust
+    /// use xhtml_parser::Document;
+    /// use xhtml_parser::Node;
+    ///
+    /// let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
+    /// let document = Document::new(xml_data).unwrap();
+    /// let root_node = document.root().unwrap();
+    /// let last_descendant_idx = document.last_descendant(root_node.idx());
+    ///
+    /// assert!(last_descendant_idx > 0); // There should be descendants
+    /// let last_descendant = document.get_node(last_descendant_idx).unwrap();
+    /// assert!(last_descendant.is("totototo")); // The last descendant should be totototo
+    /// ```
+    /// # Notes
+    /// - The method checks if the node index is valid and returns `0` if it is not.
+    /// - If the node index is `0` or if it is the root node with no descendants, it returns `0`.
+    /// # Errors
+    /// - If the node index is invalid or out of bounds, it returns `0`.
+    /// - If the node index is `1` and there are no descendants, it returns `0`.
+    pub fn last_descendant(&self, node_idx: NodeIdx) -> NodeIdx {
+        if node_idx == 0
+            || node_idx as usize >= self.nodes.len()
+            || (node_idx == 1 && self.nodes.len() <= 2)
+        {
+            0 // Invalid node index, or there is no descendant for the root
+        } else if node_idx == 1 {
+            // If the node is the root, return the last node index
+            return self.last_node_idx();
+        } else {
+            let mut up_idx = self.nodes[node_idx as usize].parent_idx;
+            let mut last_descendant = self.nodes[up_idx as usize].next_sibling_idx();
+            while last_descendant == 0 {
+                up_idx = self.nodes[up_idx as usize].parent_idx;
+                if up_idx <= 1 {
+                    last_descendant = self.nodes.len() as NodeIdx; // No more parents, will return the last node_idx
+                    break;
+                }
+                last_descendant = self.nodes[up_idx as usize].next_sibling_idx();
+            }
+
+            last_descendant - 1
+        }
+    }
+
+    /// Returns the next sequential node after the node index parameter.
+    pub fn next_seq_node(&self, current: NodeIdx) -> Option<Node> {
+        let next = current + 1;
+        if next < self.nodes.len() as NodeIdx {
+            self.get_node(next).ok()
+        } else {
+            None
+        }
+    }
+
+    /// Returns the previous sequential node before the node index parameter.
+    pub fn previous_seq_node(&self, current: NodeIdx) -> Option<Node> {
+        let previous = current - 1;
+        if previous > 0 {
+            self.get_node(previous).ok()
+        } else {
+            None
+        }
+    }
 }
 
 impl<'input> fmt::Debug for Document {
@@ -382,6 +531,136 @@ impl<'input> fmt::Debug for Document {
         } else {
             write!(f, "Document [No root node]")?;
             Ok(())
+        }
+    }
+}
+
+/// Iterator over nodes.
+///
+/// This iterator traverses nodes in the document in the sequence of appearance in the XML content.
+/// It starts from the first node and goes through all of them in the order of the vector that contains the nodes.
+/// It is used for both iterating all nodes of a document or all descendants of a specific node.
+///
+/// # Example
+/// ```rust
+/// use xhtml_parser::Document;
+///
+/// let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
+/// let document = Document::new(xml_data).unwrap();
+/// let all_nodes = document.all_nodes().collect::<Vec<_>>();
+///
+/// assert_eq!(all_nodes.len(), 4); // root, child, Text, totototo
+/// assert!(all_nodes[0].is("root"));
+/// assert!(all_nodes[1].is("child"));
+/// assert_eq!(all_nodes[2].text().unwrap(), "Text");
+/// assert!(all_nodes[3].is("totototo"));
+/// assert!(all_nodes[3].is_element()); // totototo is an element node
+/// assert!(all_nodes[2].is_text()); // Text is a text node
+/// assert!(all_nodes[0].is_root()); // root is the root node
+/// assert!(all_nodes[1].is_element()); // child is an element node
+/// assert!(all_nodes[0].has_children()); // root has children
+/// assert!(all_nodes[1].has_children()); // child has children
+/// assert!(!all_nodes[2].has_children()); // Text does not have children
+/// assert!(!all_nodes[3].has_children()); // totototo does not have children
+/// ```
+pub struct Nodes<'a> {
+    front: Option<Node<'a>>,
+    back: Option<Node<'a>>,
+}
+
+impl<'a> Nodes<'a> {
+    /// Creates a new `Nodes` iterator for the given document.
+    ///
+    /// # Arguments
+    /// - `document`: The document whose nodes will be iterated over.
+    ///
+    /// # Returns
+    /// - `Nodes`: An iterator that yields `Node` instances representing the nodes in the document.
+    pub fn new(document: &'a Document) -> Self {
+        let last_node_idx = document.last_node_idx();
+        if last_node_idx == 0 {
+            return Nodes {
+                front: None,
+                back: None,
+            };
+        }
+
+        let front = document.get_node(1);
+        let back = document.get_node(last_node_idx);
+        Nodes {
+            front: front.ok(),
+            back: back.ok(),
+        }
+    }
+
+    /// Creates a new `Nodes` iterator for the descendants of a given node index.
+    ///
+    /// # Arguments
+    /// - `document`: The document whose descendants will be iterated over.
+    /// - `node_idx`: The index of the node whose descendants are to be iterated over.
+    ///
+    /// # Returns
+    /// - `Nodes`: An iterator that yields `Node` instances representing the descendants of the specified node.
+    pub fn descendants(document: &'a Document, node_idx: NodeIdx) -> Self {
+        let last_node_idx = document.last_descendant(node_idx);
+        if node_idx == 0 || node_idx as usize >= document.nodes.len() || last_node_idx == 0 {
+            return Nodes {
+                front: None,
+                back: None,
+            };
+        }
+
+        let front = document.get_node(node_idx + 1);
+        let back = document.get_node(last_node_idx);
+        Nodes {
+            front: front.ok(),
+            back: back.ok(),
+        }
+    }
+}
+
+impl<'a> Iterator for Nodes<'a> {
+    type Item = Node<'a>;
+
+    /// Returns the next node in the sequence.
+    ///
+    /// This method retrieves the next node in the sequence of nodes in the document.
+    ///
+    /// # Returns
+    /// - `Some(Node)`: The next node in the sequence.
+    /// - `None`: If there are no more nodes to iterate over.
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.front == self.back {
+            let node = self.front.take();
+            self.back = None;
+            node
+        } else {
+            let node = self.front.take();
+            self.front = node.as_ref().and_then(|n| n.doc.next_seq_node(n.idx()));
+            node
+        }
+    }
+}
+
+impl<'a> DoubleEndedIterator for Nodes<'a> {
+    /// Returns the previous node in the sequence.
+    ///
+    /// This method retrieves the previous node in the sequence of nodes in the document.
+    ///
+    /// # Returns
+    /// - `Some(Node)`: The previous node in the sequence.
+    /// - `None`: If there are no more nodes to iterate over in the reverse direction.
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.back == self.front {
+            let node = self.back.take();
+            self.front = None;
+            node
+        } else {
+            let node = self.back.take();
+            self.back = node.as_ref().and_then(|n| n.doc.previous_seq_node(n.idx()));
+            node
         }
     }
 }

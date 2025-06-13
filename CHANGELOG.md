@@ -1,9 +1,11 @@
 # ChangeLog
 
-## [0.1.2] - TBC
+## [0.1.2] - 2025-06-12
 
 - The Document `parser` method is no longer public outside of this crate.
+- Added `Nodes` iterator to access document nodes in the sequence of creation. Accessible through the `Document::all_nodes()`, `Document::descendants()` and `Node::descendant()` methods.
 - Added blank lines in the doc examples for better readability.
+- Adjusted all examples to diminish the required `use` declarations.
 
 ## [0.1.1] - 2025-06-11
 
