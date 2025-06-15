@@ -504,7 +504,6 @@ impl Document {
     /// `Some((start, end))` where `start` is the original start position and
     /// `end` is the new end position after sequence translation and compaction.
     /// Returns `None` if processing fails.
-    #[inline]
     fn parse_escapes(&mut self, range: &XmlRange) -> Option<(XmlIdx, XmlIdx)> {
         let end = range.end;
         let mut to = range.start;
@@ -541,6 +540,42 @@ impl Document {
         }
 
         Some((range.start, to))
+    }
+
+    /// Checks if a byte is of a specific character type.
+    ///
+    /// This method uses a precomputed table to determine if the byte
+    /// belongs to a specific character type (e.g., whitespace, letter, digit).
+    ///
+    /// # Arguments
+    /// * `byte` - The byte to check
+    /// * `chartype` - The character type to check against
+    ///
+    /// # Returns
+    /// `true` if the byte matches the character type, `false` otherwise
+    #[inline]
+    fn is_of_type(&self, byte: u8, chartype: Chartype) -> bool {
+        (CHARTYPE_TABLE[byte as usize] & chartype as u8) != 0
+    }
+
+    /// Trims trailing whitespace characters from the end of a specified XML range.
+    ///
+    /// This method iterates backward from the end of the range, removing any
+    /// whitespace characters (spaces, tabs, newlines) until it reaches a non-whitespace
+    /// character or the start of the range. It effectively adjusts the end index
+    /// of the range to exclude trailing whitespace.
+    /// # Arguments
+    /// * `range` - The byte range to trim
+    ///
+    /// # Returns
+    /// The new end index of the range after trimming trailing whitespace
+    #[inline]
+    fn trim_the_ending_whitespaces(&self, range: XmlRange) -> XmlIdx {
+        let mut end = range.end;
+        while end > range.start && self.is_of_type(self.xml[(end - 1) as usize], Chartype::Space) {
+            end -= 1;
+        }
+        end
     }
 
     /// Removes the namespace prefix from an XML element or attribute name.
@@ -726,8 +761,6 @@ impl Document {
                         self.get_parent_idx(parent_idx)?
                     };
                     i += 1;
-                    // Todo: in an EPub context not to get rid of spaces here
-                    skip_chartype_nobreak!(self.xml, i, Chartype::Space);
                     if i >= size {
                         State::End
                     } else {
@@ -819,31 +852,43 @@ impl Document {
                     }
                 }
                 State::ReadContent => {
-                    // i += 1;
-                    // if i >= size {
-                    //     break;
-                    // }
-                    // ToDo: May need to keep spaces
-                    skip_chartype!(self.xml, i, Chartype::Space);
+                    let space_start = i;
+                    skip_chartype_nobreak!(self.xml, i, Chartype::Space);
+                    if i >= size {
+                        State::End
+                    } else {
+                        let mut start = i;
+                        scan_until_char!(self.xml, i, LESS_THAN);
 
-                    let start = i;
-                    scan_until_char!(self.xml, i, LESS_THAN);
-                    if i > start {
-                        let text_range = if cfg!(feature = "parse_escapes") {
-                            // Parse and translate entities in the content
-                            if let Some((_new_start, new_end)) = self.parse_escapes(&(start..i)) {
-                                start..new_end
+                        if i > start {
+                            let mut the_end = i;
+
+                            if cfg!(feature = "trim_pcdata") {
+                                the_end = self.trim_the_ending_whitespaces(start..the_end);
                             } else {
-                                return self.invalid("Invalid entity in content", start);
+                                start = space_start; // Reset start to space_start if not trimming
                             }
-                        } else {
-                            // If escape parsing is not enabled, use the original range
-                            start..i
-                        };
-                        // Add text node with content
-                        self.add_node(parent_idx, NodeType::Text(text_range))?;
+
+                            let text_range = if cfg!(feature = "parse_escapes") {
+                                // Parse and translate entities in the content
+                                if let Some((_new_start, new_end)) =
+                                    self.parse_escapes(&(start..the_end))
+                                {
+                                    start..new_end
+                                } else {
+                                    return self.invalid("Invalid entity in content", start);
+                                }
+                            } else {
+                                // If escape parsing is not enabled, use the original range
+                                start..the_end
+                            };
+                            // Add text node with content
+                            self.add_node(parent_idx, NodeType::Text(text_range))?;
+                        } else if i > space_start && cfg!(feature = "keep_ws_only_pcdata") {
+                            self.add_node(parent_idx, NodeType::Text(space_start..i))?;
+                        }
+                        State::ReadTag
                     }
-                    State::ReadTag
                 }
                 State::End => {
                     return Ok(());

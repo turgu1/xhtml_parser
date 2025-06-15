@@ -49,6 +49,146 @@ mod xhtml_parser_tests {
     }
 
     #[test]
+    #[cfg(feature = "trim_pcdata")]
+    fn test_trim_pcdata() {
+        let unit_test = UnitTest::new("trim_pcdata");
+
+        println!(
+            "trim_pcdata Test Case Folder: {:?}",
+            unit_test.test_case_folder()
+        );
+
+        let files = unit_test.get_test_case_file_paths().unwrap();
+
+        for file in files {
+            let file_name = file.file_name().unwrap().to_str().unwrap();
+
+            if file_name.ends_with(".xhtml") {
+                println!("trim_pcdata Testing File: {:?}", file_name);
+
+                let contents = std::fs::read(&file);
+                assert!(contents.is_ok(), "Failed to read file: {:?}", file_name);
+                let document = Document::new(contents.unwrap());
+
+                assert!(
+                    document.is_ok(),
+                    "Failed to process xml file: {:?} : {:?}",
+                    file_name,
+                    document.err().unwrap()
+                );
+
+                let data = format!("{:#?}", document.unwrap());
+                assert!(unit_test.check_result_with_file(&data, &file_name));
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "keep_ws_only_pcdata")]
+    fn test_keep_ws_only_pcdata() {
+        let unit_test = UnitTest::new("keep_ws_only_pcdata");
+
+        println!(
+            "keep_ws_only_pcdata Test Case Folder: {:?}",
+            unit_test.test_case_folder()
+        );
+
+        let files = unit_test.get_test_case_file_paths().unwrap();
+
+        for file in files {
+            let file_name = file.file_name().unwrap().to_str().unwrap();
+
+            if file_name.ends_with(".xhtml") {
+                println!("keep_ws_only_pcdata Testing File: {:?}", file_name);
+
+                let contents = std::fs::read(&file);
+                assert!(contents.is_ok(), "Failed to read file: {:?}", file_name);
+                let document = Document::new(contents.unwrap());
+
+                assert!(
+                    document.is_ok(),
+                    "Failed to process xml file: {:?} : {:?}",
+                    file_name,
+                    document.err().unwrap()
+                );
+
+                let data = format!("{:#?}", document.unwrap());
+                assert!(unit_test.check_result_with_file(&data, &file_name));
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "namespace_removal")]
+    fn test_namespace_removal() {
+        let unit_test = UnitTest::new("namespace_removal");
+
+        println!(
+            "namespace_removal Test Case Folder: {:?}",
+            unit_test.test_case_folder()
+        );
+
+        let files = unit_test.get_test_case_file_paths().unwrap();
+
+        for file in files {
+            let file_name = file.file_name().unwrap().to_str().unwrap();
+
+            if file_name.ends_with(".xhtml") {
+                println!("namespace_removal Testing File: {:?}", file_name);
+
+                let contents = std::fs::read(&file);
+                assert!(contents.is_ok(), "Failed to read file: {:?}", file_name);
+                let document = Document::new(contents.unwrap());
+
+                assert!(
+                    document.is_ok(),
+                    "Failed to process xml file: {:?} : {:?}",
+                    file_name,
+                    document.err().unwrap()
+                );
+
+                let data = format!("{:#?}", document.unwrap());
+                assert!(unit_test.check_result_with_file(&data, &file_name));
+            }
+        }
+    }
+
+        #[test]
+    #[cfg(feature = "parse_escapes")]
+    fn test_parse_escapes() {
+        let unit_test = UnitTest::new("parse_escapes");
+
+        println!(
+            "parse_escapes Test Case Folder: {:?}",
+            unit_test.test_case_folder()
+        );
+
+        let files = unit_test.get_test_case_file_paths().unwrap();
+
+        for file in files {
+            let file_name = file.file_name().unwrap().to_str().unwrap();
+
+            if file_name.ends_with(".xhtml") {
+                println!("parse_escapes Testing File: {:?}", file_name);
+
+                let contents = std::fs::read(&file);
+                assert!(contents.is_ok(), "Failed to read file: {:?}", file_name);
+                let document = Document::new(contents.unwrap());
+
+                assert!(
+                    document.is_ok(),
+                    "Failed to process xml file: {:?} : {:?}",
+                    file_name,
+                    document.err().unwrap()
+                );
+
+                let data = format!("{:#?}", document.unwrap());
+                assert!(unit_test.check_result_with_file(&data, &file_name));
+            }
+        }
+    }
+
+    #[test]
     fn test_descendant_iterator() {
         let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
         let document = Document::new(xml_data).unwrap();

@@ -1,0 +1,61 @@
+Document [
+    Element {
+        tag_name: "note"
+        attributes: [
+            Attribute { name: "id", value: "1" }
+            Attribute { name: "level", value: "high" }
+        ]
+        children: [
+            Text {
+                "
+   "
+            }
+            Element {
+                tag_name: "to"
+                children: [
+                    Text {
+                        "Tove"
+                    }
+                ]
+            }
+            Text {
+                "
+   "
+            }
+            Element {
+                tag_name: "from"
+                attributes: [
+                    Attribute { name: "value", value: "Jani" }
+                ]
+            }
+            Text {
+                "
+   "
+            }
+            Element {
+                tag_name: "heading"
+                children: [
+                    Text {
+                        "Reminder"
+                    }
+                ]
+            }
+            Text {
+                "
+   "
+            }
+            Element {
+                tag_name: "body"
+                children: [
+                    Text {
+                        "Don't forget me this weekend!"
+                    }
+                ]
+            }
+            Text {
+                "
+"
+            }
+        ]
+    }
+]

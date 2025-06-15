@@ -14,9 +14,11 @@ The parsing process is limited to normal tags, attributes, and PCData content. N
 The parser is open-source and can be freely used and modified under the terms of the MIT license.
 
 ### Cargo defined Features
-- `default`: Enables the default features of the parser. All of the following features are enabled by default:
-- `namespace_removal`: Enables removal of XML namespaces from tag names during parsing.
-- `parse_escapes`: Enables parsing of character escapes sequences (`&..;`) in text nodes.
+- `default`: Enables the default features of the parser. 
+- `namespace_removal`: Enables removal of XML namespaces from tag names during parsing. Default is **enabled**.
+- `parse_escapes`: Enables parsing of character escapes sequences (`&..;`) in PCData nodes and attribute values. Default is **enabled**.
+- `keep_ws_only_pcdata`: all PCData nodes that are composed of whitespace only will be kept. Default is **disabled**.
+- `trim_pcdata`: trim whitespaces at beginning and end of PCData nodes. Default is **disabled**.
 
 ### Changelog
 

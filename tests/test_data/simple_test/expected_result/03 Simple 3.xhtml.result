@@ -90,7 +90,8 @@ Document [
                 tag_name: "expectedOutcome"
                 children: [
                     Text {
-                        "The application should function correctly with the new settings applied.
+                        "
+    The application should function correctly with the new settings applied.
   "
                     }
                 ]

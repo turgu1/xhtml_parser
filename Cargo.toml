@@ -1,6 +1,6 @@
 [package]
 name = "xhtml_parser"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Guy Turcotte"]
 description = "Non-validating XHTML Tree-based parser."
 readme = "README.md"
@@ -19,7 +19,8 @@ phf = { version = "0.11", features = ["macros"] }
 default = ["namespace_removal", "parse_escapes"]
 namespace_removal = []
 parse_escapes = []
-
+keep_ws_only_pcdata = []
+trim_pcdata = []
 
 [dev-dependencies]
 test_support = { path = "./tests/test_support" }
