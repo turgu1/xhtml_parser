@@ -33,7 +33,12 @@
 //!
 //! # ChangeLog
 //!
-//! ## [0.2.0] - TBC
+//! ## [0.2.1] - 2025-06-15
+//!
+//! - Date adjustment in changelog
+//! - Added the changelog to README.md
+//!
+//! ## [0.2.0] - 2025-06-15
 //!
 //! - Going to version [0.2.0] is required as the way that space characters present at the beginning and end of PCData nodes are processed is different, whether or not the following added features are enabled or disabled.
 //! - Added `keep_ws_only_pcdata`: all PCData nodes that are composed of whitespace only will be kept. Default is **disabled**.
