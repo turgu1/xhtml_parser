@@ -22,6 +22,11 @@ The parser is open-source and can be freely used and modified under the terms of
 
 # ChangeLog
 
+## [0.2.3] - TBA
+
+- Attribute value normalization.
+- removal of carriage_return characters in attribute values and PCData.
+
 ## [0.2.2] - 2025-06-17
 
 - Better Comment, `<!DOCTYPE .. >` and `<![CDATA[ .. ]]>` bypassing parser algorithm. 
