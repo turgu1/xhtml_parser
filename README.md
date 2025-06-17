@@ -4,7 +4,7 @@ This is a simple XML/XHTML parser that constructs a read-only tree structure sim
 
 Loosely based on the PUGIXML parsing method and structure that is described [here](https://aosabook.org/en/posa/parsing-xml-at-the-speed-of-light.html), it is an in-place parser: all strings are kept in the received `Vec<u8>` for which the parser takes ownership. Its content is modified to expand entities to their UTF-8 representation (in attribute values and PCData). Position index of elements is preseved in the vector. Tree nodes are kept to their minimum size for low-memory-constrained environments. A single pre-allocated vector contains all the nodes of the tree. 
 
-The parsing process is limited to normal tags, attributes, and PCData content. No processing instruction (`<? .. ?>`), comment (`<!-- .. -->`), CDATA (`<![CDATA .. ]>`), DOCTYPE (`<!DOCTYPE .. >`), or DTD inside DOCTYPE (`[ ... ]`) is retrieved. Basic validation is done to the XHTML structure to ensure content coherence.
+The parsing process is limited to normal tags, attributes, and PCData content. No processing instruction (`<? .. ?>`), comment (`<!-- .. -->`), CDATA (`<![CDATA .. ]]>`), DOCTYPE (`<!DOCTYPE .. >`), or DTD inside DOCTYPE (`[ ... ]`) is retrieved. Basic validation is done to the XHTML structure to ensure content coherence.
 
 - No `unsafe` construct.
 - XML content must be UTF-8.
