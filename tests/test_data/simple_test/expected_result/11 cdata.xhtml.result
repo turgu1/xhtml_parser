@@ -1,0 +1,13 @@
+Document [
+    Element {
+        tag_name: "ApplicationExtensibility"
+        children: [
+            Element {
+                tag_name: "OnLoad"
+            }
+            Element {
+                tag_name: "ItemAdded"
+            }
+        ]
+    }
+]

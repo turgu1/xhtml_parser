@@ -4,7 +4,7 @@ This is a simple XML/XHTML parser that constructs a read-only tree structure sim
 
 Loosely based on the PUGIXML parsing method and structure that is described [here](https://aosabook.org/en/posa/parsing-xml-at-the-speed-of-light.html), it is an in-place parser: all strings are kept in the received `Vec<u8>` for which the parser takes ownership. Its content is modified to expand entities to their UTF-8 representation (in attribute values and PCData). Position index of elements is preseved in the vector. Tree nodes are kept to their minimum size for low-memory-constrained environments. A single pre-allocated vector contains all the nodes of the tree. 
 
-The parsing process is limited to normal tags, attributes, and PCData content. No processing instruction (`<? .. ?>`), comment (`<!-- .. -->`), CDATA (`<![CDATA .. ]>`), or DOCTYPE (`<!DOCTYPE .. ]>`) is retrieved. Basic validation is done to the XHTML structure to ensure content coherence.
+The parsing process is limited to normal tags, attributes, and PCData content. No processing instruction (`<? .. ?>`), comment (`<!-- .. -->`), CDATA (`<![CDATA .. ]>`), DOCTYPE (`<!DOCTYPE .. >`), or DTD inside DOCTYPE (`[ ... ]`) is retrieved. Basic validation is done to the XHTML structure to ensure content coherence.
 
 - No `unsafe` construct.
 - XML content must be UTF-8.
@@ -22,10 +22,17 @@ The parser is open-source and can be freely used and modified under the terms of
 
 # ChangeLog
 
+## [0.2.2] - 2025-06-17
+
+- Better Comment, `<!DOCTYPE .. >` and `<![CDATA[ .. ]]>` bypassing parser algorithm. 
+- Added DTD bypassing.
+- Added tests for these.
+- Corrected README.md.
+
 ## [0.2.1] - 2025-06-15
 
-- Date adjustment in changelog
-- Added the changelog to README.md
+- Date adjustment in changelog.
+- Added the changelog to README.md.
 
 ## [0.2.0] - 2025-06-15
 
@@ -38,13 +45,13 @@ The parser is open-source and can be freely used and modified under the terms of
 ## [0.1.2] - 2025-06-12
 
 - The Document `parser` method is no longer public outside of this crate.
-- Added `Nodes` iterator to access document nodes in the sequence of creation. Accessible through the `Document::all_nodes()`, `Document::descendants()` and `Node::descendant()` methods.
+- Added `Nodes` iterator to access document nodes in the sequence of creation. Accessible through the `Document::all_nodes()`, `Document::descendants()` and `Node::descendants()` methods.
 - Added blank lines in the doc examples for better readability.
 - Adjusted all examples to diminish the required `use` declarations.
 
 ## [0.1.1] - 2025-06-11
 
-- Added `pub fn is(&self, name: &str) -> bool` method to `Attribute` and `Node` modules
+- Added `pub fn is(&self, name: &str) -> bool` method to `Attribute` and `Node` modules.
 - Added  `pub use` entries in `lib.rs` to simplify usage in calling applications. All examples and tests have been modified in accordance with this change.
 - Added `Display` trait definition for the `ParseXmlError` enum in the `defs` module.
 
@@ -52,5 +59,5 @@ The parser is open-source and can be freely used and modified under the terms of
 
 ## [0.1.0] - 2025-06-10 
 
-Initial release
+Initial release.
 

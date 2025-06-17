@@ -1,0 +1,39 @@
+Document [
+    Element {
+        tag_name: "note"
+        children: [
+            Element {
+                tag_name: "to"
+                children: [
+                    Text {
+                        "Tove"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "from"
+                children: [
+                    Text {
+                        "Jani"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "heading"
+                children: [
+                    Text {
+                        "Reminder"
+                    }
+                ]
+            }
+            Element {
+                tag_name: "body"
+                children: [
+                    Text {
+                        "Don't forget me this weekend"
+                    }
+                ]
+            }
+        ]
+    }
+]

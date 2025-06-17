@@ -1,0 +1,36 @@
+Document [
+    Element {
+        tag_name: "people_list"
+        children: [
+            Element {
+                tag_name: "person"
+                children: [
+                    Element {
+                        tag_name: "name"
+                        children: [
+                            Text {
+                                "Fred Bloggs"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "birthdate"
+                        children: [
+                            Text {
+                                "27/11/2008"
+                            }
+                        ]
+                    }
+                    Element {
+                        tag_name: "gender"
+                        children: [
+                            Text {
+                                "Male"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

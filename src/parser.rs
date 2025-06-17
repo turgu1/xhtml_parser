@@ -10,6 +10,7 @@ use crate::document::Document;
 use crate::node_type::NodeType;
 
 use kmp::kmp_find;
+use memchr::memchr2;
 use phf::phf_map;
 
 enum State {
@@ -22,17 +23,19 @@ enum State {
     End,
 }
 
-const LESS_THAN: u8 = '<' as u8;
-const GREATER_THAN: u8 = '>' as u8;
-const SLASH: u8 = '/' as u8;
-const EQUAL: u8 = '=' as u8;
-const EXCLAMATION_MARK: u8 = '!' as u8;
-const QUESTION_MARK: u8 = '?' as u8;
-const AMPERSAND: u8 = '&' as u8;
-const SEMI_COLON: u8 = ';' as u8;
-const HASH: u8 = '#' as u8;
-const X_CHAR: u8 = 'x' as u8;
-const COLON: u8 = ':' as u8;
+const LESS_THAN: u8 = b'<';
+const GREATER_THAN: u8 = b'>';
+const SLASH: u8 = b'/';
+const EQUAL: u8 = b'=';
+const EXCLAMATION_MARK: u8 = b'!';
+const QUESTION_MARK: u8 = b'?';
+const AMPERSAND: u8 = b'&';
+const SEMI_COLON: u8 = b';';
+const HASH: u8 = b'#';
+const X_CHAR: u8 = b'x';
+const COLON: u8 = b':';
+const LEFT_BRACKET: u8 = b'[';
+const RIGHT_BRACKET: u8 = b']';
 
 #[allow(dead_code)]
 #[derive(Clone, Copy)]
@@ -205,6 +208,20 @@ static ENTITIES_MAP: phf::Map<&'static [u8], &'static [u8]> = phf_map! {
 // In the following macros, the code is embedded within a block ( {{..}} ) to have have a local scope for local variable.
 // This allows us to use the some variable names in different macros or other code without conflicts.
 
+macro_rules! skip_after_slice {
+    ($contents: expr, $p: ident, $max: expr, $slice: expr) => {{
+        if $p >= $contents.len() as XmlIdx {
+            break;
+        }
+        let max_pos: XmlIdx = ($p + $max).min($contents.len() as XmlIdx);
+        if let Some(pos) = kmp_find($slice, &$contents[$p as usize..max_pos as usize]) {
+            $p += pos as XmlIdx + $slice.len() as XmlIdx;
+        } else {
+            break; // Move to the end if no more characters match
+        }
+    }};
+}
+
 macro_rules! skip_after_slice_nobreak {
     ($contents: expr, $p: ident, $max: expr, $slice: expr) => {{
         if $p < $contents.len() as XmlIdx {
@@ -296,6 +313,18 @@ macro_rules! scan_until_char {
             break;
         }
         if let Some(pos) = (&$contents[$p as usize..]).iter().position(|&c| c == $char) {
+            $p += pos as XmlIdx;
+        } else {
+            break;
+        }
+    }};
+}
+
+macro_rules! scan_until_one_of_2_chars {
+    ($contents: expr, $p: ident, $char1: ident, $char2: ident) => {{
+        if $p >= $contents.len() as XmlIdx {
+            break;
+        } else if let Some(pos) = memchr2($char1, $char2, &$contents[$p as usize..]) {
             $p += pos as XmlIdx;
         } else {
             break;
@@ -623,7 +652,7 @@ impl Document {
     /// - Text content with entity translation
     /// - Comments and processing instructions (bypass)
     /// - CDATA sections (bypass)
-    /// - DTD and DTD declarations (bypass)
+    /// - DOCTYPE and DTD declarations (bypass)
     ///
     /// The parser maintains a current parent node and builds the tree by adding
     /// child nodes as it encounters different XML constructs. It performs
@@ -671,41 +700,51 @@ impl Document {
                             EXCLAMATION_MARK => {
                                 i += 1;
                                 if i < size {
-                                    if self.xml[i as usize] == b'[' {
-                                        i += 1;
-                                        skip_after_slice_nobreak!(
+                                    if self.xml[i as usize..].starts_with(b"--") {
+                                        i += 2;
+                                        skip_after_slice!(self.xml, i, 5000, &b"-->".as_slice());
+                                    } else if self.xml[i as usize..].starts_with(b"DOCTYPE") {
+                                        i += 7;
+                                        scan_until_one_of_2_chars!(
                                             self.xml,
                                             i,
-                                            5000,
-                                            &b">".as_slice()
+                                            GREATER_THAN,
+                                            LEFT_BRACKET
                                         );
-                                    } else if self.xml[i as usize] == b'-' {
-                                        i += 1;
-                                        skip_after_slice_nobreak!(
-                                            self.xml,
-                                            i,
-                                            5000,
-                                            &b"-->".as_slice()
-                                        );
+                                        if self.xml[i as usize] == LEFT_BRACKET {
+                                            scan_until_char!(self.xml, i, RIGHT_BRACKET);
+                                            i += 1; // skip ']'
+                                            skip_chartype!(self.xml, i, Chartype::Space);
+                                            if self.xml[i as usize] == GREATER_THAN {
+                                                i += 1; // skip '>'
+                                            } else {
+                                                return self.invalid(
+                                                    "Expected '>' after DOCTYPE declaration",
+                                                    i,
+                                                );
+                                            }
+                                        }
+                                        i += 1; // skip '>'
+                                    } else if self.xml[i as usize..].starts_with(b"[CDATA[") {
+                                        i += 7;
+                                        skip_after_slice!(self.xml, i, 5000, &b"]]>".as_slice());
                                     } else {
                                         break;
                                     }
                                 }
-                                skip_chartype_nobreak!(self.xml, i, Chartype::Space);
                                 if i >= size {
                                     State::End
                                 } else {
-                                    State::ReadTag
+                                    State::ReadContent
                                 }
                             }
                             QUESTION_MARK => {
                                 i += 1;
-                                skip_after_slice_nobreak!(self.xml, i, 500, &b"?>".as_slice());
-                                skip_chartype_nobreak!(self.xml, i, Chartype::Space);
+                                skip_after_slice!(self.xml, i, 500, &b"?>".as_slice());
                                 if i >= size {
                                     State::End
                                 } else {
-                                    State::ReadTag
+                                    State::ReadContent
                                 }
                             }
                             _ => State::ReadTagOpen,

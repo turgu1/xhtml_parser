@@ -1,9 +1,16 @@
 # ChangeLog
 
+## [0.2.2] - 2025-06-17
+
+- Better Comment, `<!DOCTYPE .. >` and `<![CDATA[ .. ]]>` bypassing parser algorithm. 
+- Added DTD bypassing.
+- Added tests for these.
+- Corrected README.md.
+
 ## [0.2.1] - 2025-06-15
 
-- Date adjustment in changelog
-- Added the changelog to README.md
+- Date adjustment in changelog.
+- Added the changelog to README.md.
 
 ## [0.2.0] - 2025-06-15
 
@@ -16,13 +23,13 @@
 ## [0.1.2] - 2025-06-12
 
 - The Document `parser` method is no longer public outside of this crate.
-- Added `Nodes` iterator to access document nodes in the sequence of creation. Accessible through the `Document::all_nodes()`, `Document::descendants()` and `Node::descendant()` methods.
+- Added `Nodes` iterator to access document nodes in the sequence of creation. Accessible through the `Document::all_nodes()`, `Document::descendants()` and `Node::descendants()` methods.
 - Added blank lines in the doc examples for better readability.
 - Adjusted all examples to diminish the required `use` declarations.
 
 ## [0.1.1] - 2025-06-11
 
-- Added `pub fn is(&self, name: &str) -> bool` method to `Attribute` and `Node` modules
+- Added `pub fn is(&self, name: &str) -> bool` method to `Attribute` and `Node` modules.
 - Added  `pub use` entries in `lib.rs` to simplify usage in calling applications. All examples and tests have been modified in accordance with this change.
 - Added `Display` trait definition for the `ParseXmlError` enum in the `defs` module.
 
@@ -30,5 +37,5 @@
 
 ## [0.1.0] - 2025-06-10 
 
-Initial release
+Initial release.
 
