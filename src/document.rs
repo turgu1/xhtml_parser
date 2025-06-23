@@ -239,7 +239,7 @@ impl Document {
     ) -> Result<NodeIdx, ParseXmlError> {
         let node_idx = self.nodes.len() as NodeIdx;
 
-        if node_idx >= u16::MAX {
+        if node_idx >= NodeIdx::MAX {
             return Err(ParseXmlError::NoMoreSpace);
         }
 

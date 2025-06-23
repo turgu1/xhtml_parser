@@ -36,16 +36,17 @@ const X_CHAR: u8 = b'x';
 const COLON: u8 = b':';
 const LEFT_BRACKET: u8 = b'[';
 const RIGHT_BRACKET: u8 = b']';
+const SPACE: u8 = b' ';
+const NEWLINE: u8 = b'\n';
+const CARRIAGE_RETURN: u8 = b'\r';
 
 #[allow(dead_code)]
 #[derive(Clone, Copy)]
+
 enum Chartype {
-    ParsePcData = 1,   // \0, &, \r, <
-    ParseAttr = 2,     // \0, &, \r, ', "
-    ParseAttrWs = 4,   // \0, &, \r, ', ", \n, tab
+    ParsePCData = 1,   // &, \r
+    ParseAtrNorm = 4,  // &, \r, \n, space, tab
     Space = 8,         // \r, \n, space, tab
-    ParseCData = 16,   // \0, ], >, \r
-    ParseComment = 32, // \0, -, >, \r
     Symbol = 64,       // Any symbol > 127, a-z, A-Z, 0-9, _, :, -, .
     StartSymBol = 128, // Any symbol > 127, a-z, A-Z, _, :
 }
@@ -55,12 +56,12 @@ const SYMBOL: u8 = Chartype::Symbol as u8;
 const START_SYMBOL: u8 = Chartype::StartSymBol as u8;
 
 const CHARTYPE_TABLE: [u8; 256] = [
-    55, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 0, 0, 63, 0, 0, // 0-15
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 0, 0, 13, 0, 0, // 0-15
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16-31
-    8, 0, 6, 0, 0, 0, 7, 6, 0, 0, 0, 0, 0, 96, 64, 0, // 32-47
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 192, 0, 1, 0, 48, 0, // 48-63
+    12, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 64, 64, 0, // 32-47
+    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 192, 0, 0, 0, 0, 0, // 48-63
     0, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, // 64-79
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 0, 0, 16, 0, 192, // 80-95
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 0, 0, 0, 0, 192, // 80-95
     0, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, // 96-111
     192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 0, 0, 0, 0, 0, // 112-127
     192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, // 128+
@@ -205,134 +206,233 @@ static ENTITIES_MAP: phf::Map<&'static [u8], &'static [u8]> = phf_map! {
     b"euro"   => b"\xE2\x80\xAC", // euro sign, U+20AC NEW
 };
 
-// In the following macros, the code is embedded within a block ( {{..}} ) to have have a local scope for local variable.
-// This allows us to use the some variable names in different macros or other code without conflicts.
-
-macro_rules! skip_after_slice {
-    ($contents: expr, $p: ident, $max: expr, $slice: expr) => {{
-        if $p >= $contents.len() as XmlIdx {
-            break;
-        }
-        let max_pos: XmlIdx = ($p + $max).min($contents.len() as XmlIdx);
-        if let Some(pos) = kmp_find($slice, &$contents[$p as usize..max_pos as usize]) {
-            $p += pos as XmlIdx + $slice.len() as XmlIdx;
-        } else {
-            break; // Move to the end if no more characters match
-        }
-    }};
-}
-
-macro_rules! skip_after_slice_nobreak {
-    ($contents: expr, $p: ident, $max: expr, $slice: expr) => {{
-        if $p < $contents.len() as XmlIdx {
-            let max_pos: XmlIdx = ($p + $max).min($contents.len() as XmlIdx);
-            if let Some(pos) = kmp_find($slice, &$contents[$p as usize..max_pos as usize]) {
-                $p += pos as XmlIdx + $slice.len() as XmlIdx;
-            } else {
-                $p = $contents.len() as XmlIdx; // Move to the end if no more characters match
-            }
-        }
-    }};
-}
-macro_rules! skip_chartype {
-    ($contents: expr, $p: ident, $chartype: expr) => {{
-        if $p >= $contents.len() as XmlIdx {
-            break;
-        }
-        if let Some(pos) = (&$contents[$p as usize..])
-            .iter()
-            .position(|&c| (CHARTYPE_TABLE[c as usize] & $chartype as u8) == 0)
-        {
-            $p += pos as XmlIdx;
-        } else {
-            break;
-        }
-    }};
-}
-
-macro_rules! skip_chartype_nobreak {
-    ($contents: expr, $p: ident, $chartype: expr) => {{
-        if $p < $contents.len() as XmlIdx {
-            if let Some(pos) = (&$contents[$p as usize..])
-                .iter()
-                .position(|&c| (CHARTYPE_TABLE[c as usize] & $chartype as u8) == 0)
-            {
-                $p += pos as XmlIdx;
-            } else {
-                $p = $contents.len() as XmlIdx; // Move to the end if no more characters match
-            }
-        } else {
-            $p = $contents.len() as XmlIdx; // Move to the end if pointer is out of bounds
-        }
-    }};
-}
-
-macro_rules! scan_until_chartype {
-    ($contents: expr, $p: ident, $chartype: expr) => {{
-        if $p >= $contents.len() as XmlIdx {
-            break;
-        }
-        if let Some(pos) = (&$contents[$p..])
-            .iter()
-            .position(|&c| (CHARTYPE_TABLE[c as usize] & $chartype as u8) != 0)
-        {
-            $p += pos;
-        } else {
-            break;
-        }
-    }};
-}
-
-macro_rules! scan_until_char_or_nochange {
-    ($contents: expr, $p: ident, $char: ident) => {{
-        if $p < $contents.len() as XmlIdx {
-            if let Some(pos) = (&$contents[$p as usize..]).iter().position(|&c| c == $char) {
-                $p += pos as XmlIdx;
-            }
-        }
-    }};
-}
-
-macro_rules! scan_until_char_nobreak {
-    ($contents: expr, $p: ident, $char: ident) => {{
-        if $p < $contents.len() as XmlIdx {
-            if let Some(pos) = (&$contents[$p as usize..]).iter().position(|&c| c == $char) {
-                $p += pos as XmlIdx;
-            } else {
-                $p = $contents.len() as XmlIdx; // Move to the end if no more characters match
-            }
-        } else {
-            $p = $contents.len() as XmlIdx; // Move to the end if pointer is out of bounds
-        }
-    }};
-}
-
-macro_rules! scan_until_char {
-    ($contents: expr, $p: ident, $char: ident) => {{
-        if $p >= $contents.len() as XmlIdx {
-            break;
-        }
-        if let Some(pos) = (&$contents[$p as usize..]).iter().position(|&c| c == $char) {
-            $p += pos as XmlIdx;
-        } else {
-            break;
-        }
-    }};
-}
-
-macro_rules! scan_until_one_of_2_chars {
-    ($contents: expr, $p: ident, $char1: ident, $char2: ident) => {{
-        if $p >= $contents.len() as XmlIdx {
-            break;
-        } else if let Some(pos) = memchr2($char1, $char2, &$contents[$p as usize..]) {
-            $p += pos as XmlIdx;
-        } else {
-            break;
-        }
-    }};
-}
-
 impl Document {
+    /// Scans the XML buffer until a specific character is found or the end of the buffer is reached.
+    ///
+    /// This method searches for the specified character starting from the current pointer position
+    /// and returns the position of the found character.
+    /// If the character is not found, it returns the end of the XML buffer.
+    ///
+    /// # Arguments
+    /// * `p` - The current position in the XML buffer
+    /// * `target_char` - The byte value of the character to search for
+    ///
+    /// # Returns
+    /// `XmlIdx` - The updated pointer position after scanning for the character.
+    #[inline(always)]
+    fn scan_until_char_or_end(&self, p: XmlIdx, target_char: u8) -> XmlIdx {
+        if p < self.xml.len() as XmlIdx {
+            if let Some(pos) = (&self.xml[p as usize..])
+                .iter()
+                .position(|&c| c == target_char)
+            {
+                p + pos as XmlIdx
+            } else {
+                self.xml.len() as XmlIdx // Move to the end if no more characters match
+            }
+        } else {
+            self.xml.len() as XmlIdx // Move to the end if pointer is out of bounds
+        }
+    }
+
+    /// Skips a specific slice in the XML buffer, returning the next position after the slice.
+    ///
+    /// This method scans the XML buffer starting from the current pointer position `p`
+    /// and skips over the specified slice.
+    /// If the slice is not found, it returns `None`.
+    ///
+    /// # Arguments
+    /// * `p` - The current position in the XML buffer
+    /// * `max` - The maximum number of bytes to search for the slice
+    /// * `slice` - The slice to skip, represented as a byte slice
+    ///
+    /// # Returns
+    /// `Option<XmlIdx>` - The updated pointer position after skipping the slice,
+    /// or `None` if the end of the XML buffer is reached or the slice is not found.
+    #[inline(always)]
+    fn skip_after_slice(&self, p: XmlIdx, max: XmlIdx, slice: &[u8]) -> Option<XmlIdx> {
+        if p >= self.xml.len() as XmlIdx {
+            None
+        } else {
+            let max_pos: XmlIdx = (p + max).min(self.xml.len() as XmlIdx);
+            if let Some(pos) = kmp_find(slice, &self.xml[p as usize..max_pos as usize]) {
+                Some(p + pos as XmlIdx + slice.len() as XmlIdx)
+            } else {
+                None
+            }
+        }
+    }
+
+    /// Skips characters of a specific type in the XML buffer, returning the next position that does not match the chartype.
+    ///
+    /// This method scans the XML buffer starting from the current pointer position
+    /// and skips over characters that match the specified chartype.
+    /// If the end of the buffer is reached, `None` is returned.
+    ///
+    /// # Arguments
+    /// * `p` - The current position in the XML buffer
+    /// * `chartype` - The chartype to skip, represented as a bitmask
+    ///
+    /// # Returns
+    /// `Some(XmlIdx)` - The updated pointer position after skipping characters of the specified chartype,
+    /// or `None` if the end of the XML buffer is reached.
+    #[inline(always)]
+    fn skip_chartype(&self, p: XmlIdx, chartype: u8) -> Option<XmlIdx> {
+        if p >= self.xml.len() as XmlIdx {
+            None
+        } else if let Some(pos) = (self.xml[p as usize..])
+            .iter()
+            .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) == 0)
+        {
+            Some(p + pos as XmlIdx)
+        } else {
+            None
+        }
+    }
+
+    /// Scans a range in the XML buffer for a specific character type and returns the position of the first occurrence.
+    ///
+    /// This method searches for the specified character type within the given range and returns the position
+    /// of the first character that matches the chartype. If no character matches, it returns the end of the range.
+    ///
+    /// # Arguments
+    /// * `range` - The range within the XML buffer to search
+    /// * `chartype` - The character type to search for, represented as a bitmask
+    ///
+    /// # Returns
+    /// `XmlIdx` - The position of the first character that matches the chartype,
+    /// or the end of the range if no character matches.
+    #[inline(always)]
+    fn scan_range_for_chartype_or_end(&self, range: XmlRange, chartype: u8) -> XmlIdx {
+        if let Some(pos) = (self.xml[range.start as usize..range.end as usize])
+            .iter()
+            .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) != 0)
+        {
+            range.start + pos as XmlIdx
+        } else {
+            range.end
+        }
+    }
+
+    #[inline(always)]
+    fn scan_range_for_char_or_end(&self, range: XmlRange, target_char: u8) -> XmlIdx {
+        if let Some(pos) = (self.xml[range.start as usize..range.end as usize])
+            .iter()
+            .position(|&c| c == target_char)
+        {
+            range.start + pos as XmlIdx
+        } else {
+            range.end
+        }
+    }
+
+    /// Scans the XML buffer until a specific character is found.
+    ///
+    /// This method searches for the specified character starting from the current position `p`
+    /// and returns the position of the found character. If the character is not found,
+    /// it returns `None`.
+    ///
+    /// # Arguments
+    /// * `p` - The current position in the XML buffer
+    /// * `target_char` - The byte value of the character to search for
+    ///
+    /// # Returns
+    /// `Option<XmlIdx>` - The position of the found character, or `None` if the character is not found
+    /// or if the position `p` is beyond the end
+    /// of the XML buffer.
+    #[inline(always)]
+    fn scan_until_char(&self, p: XmlIdx, target_char: u8) -> Option<XmlIdx> {
+        if p >= self.xml.len() as XmlIdx {
+            None
+        } else if let Some(pos) = (&self.xml[p as usize..])
+            .iter()
+            .position(|&c| c == target_char)
+        {
+            Some(p + pos as XmlIdx)
+        } else {
+            None
+        }
+    }
+
+    /// Skips characters of a specific type in the XML buffer, returning the next position that does not match the chartype.
+    ///
+    /// This method scans the XML buffer starting from the current pointer position
+    /// and skips over characters that match the specified chartype.
+    /// If the end of the buffer is reached, it returns the length of the XML buffer.
+    ///
+    /// # Arguments
+    /// * `p` - The current position in the XML buffer
+    /// * `chartype` - The chartype to skip, represented as a bitmask
+    ///
+    /// # Returns
+    /// `XmlIdx` - The updated pointer position after skipping characters of the specified chartype
+    #[inline(always)]
+    fn skip_chartype_or_end(&self, p: XmlIdx, chartype: u8) -> XmlIdx {
+        if p < self.xml.len() as XmlIdx {
+            if let Some(pos) = (self.xml[p as usize..])
+                .iter()
+                .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) == 0)
+            {
+                p + pos as XmlIdx
+            } else {
+                self.xml.len() as XmlIdx
+            }
+        } else {
+            self.xml.len() as XmlIdx
+        }
+    }
+
+    /// Scans the XML buffer until one of two specific characters is found.
+    ///
+    /// This method searches for either `char1` or `char2` starting from the current position `p`
+    /// and returns the position of the found character. If neither character is found,
+    /// it returns `None`.
+    ///
+    /// # Arguments
+    /// * `p` - The current position in the XML buffer
+    /// * `char1` - The first byte value of the character to search for
+    /// * `char2` - The second byte value of the character to search for
+    ///
+    /// # Returns
+    /// `Option<XmlIdx>` - The position of the found character, or `None` if neither character is found
+    /// or if the position `p` is beyond the end
+    /// of the XML buffer.
+    #[inline(always)]
+    fn scan_until_one_of_2_chars(&self, p: XmlIdx, char1: u8, char2: u8) -> Option<XmlIdx> {
+        if p >= self.xml.len() as XmlIdx {
+            None
+        } else if let Some(pos) = memchr2(char1, char2, &self.xml[p as usize..]) {
+            Some(p + pos as XmlIdx)
+        } else {
+            None
+        }
+    }
+
+    /// Scans the XML buffer until a specific character is found or no change occurs.
+    ///
+    /// This method searches for the specified character starting from the given position
+    /// and returns the position of the found character. If the character is not found,
+    /// the original position is returned unchanged.
+    ///
+    /// # Arguments
+    /// * `p` - The current position in the XML buffer
+    /// * `target_char` - The byte value of the character to search for
+    ///
+    /// # Returns
+    /// The updated position in the XML buffer after scanning for the character.
+    #[inline(always)]
+    fn scan_until_char_or_nochange(&self, p: XmlIdx, target_char: u8) -> XmlIdx {
+        if p < self.xml.len() as XmlIdx {
+            if let Some(pos) = (&self.xml[p as usize..])
+                .iter()
+                .position(|&c| c == target_char)
+            {
+                return p + pos as XmlIdx;
+            }
+        }
+        p
+    }
+
     /// Displays XML content around an error position for debugging purposes.
     ///
     /// This method extracts a 60-character window (30 characters before and after)
@@ -475,7 +575,7 @@ impl Document {
     /// `Some((next_from, next_to))` if translation succeeds, where `next_from` is
     /// the position after the semicolon and `next_to` is the position after the
     /// written UTF-8 bytes. Returns `None` if the escape sequence is invalid.
-    #[inline]
+    #[inline(always)]
     fn translate_sequence(&mut self, from: XmlIdx, to: XmlIdx) -> Option<(XmlIdx, XmlIdx)> {
         let mut from = from;
         let number = self.xml[from as usize] == HASH;
@@ -487,7 +587,7 @@ impl Document {
             from += 1;
         }
         let start = from;
-        scan_until_char_or_nochange!(self.xml, from, SEMI_COLON);
+        from = self.scan_until_char_or_nochange(from, SEMI_COLON);
         if from == start {
             return None; // No entity found
         }
@@ -533,17 +633,19 @@ impl Document {
     /// `Some((start, end))` where `start` is the original start position and
     /// `end` is the new end position after sequence translation and compaction.
     /// Returns `None` if processing fails.
-    fn parse_escapes(&mut self, range: &XmlRange) -> Option<(XmlIdx, XmlIdx)> {
+    fn parse_pcdata(&mut self, range: &XmlRange) -> XmlRange {
         let end = range.end;
         let mut to = range.start;
         let mut from = range.start;
 
         loop {
-            let ampersand_pos = self.xml[from as usize..end as usize]
-                .iter()
-                .position(|&c| c == AMPERSAND)
-                .map_or(end, |pos| from + pos as XmlIdx);
-            if ampersand_pos >= end {
+            let next_pos = if cfg!(feature = "parse_escapes") {
+                self.scan_range_for_chartype_or_end(from..end, Chartype::ParsePCData as u8)
+            } else {
+                self.scan_range_for_char_or_end(from..end, CARRIAGE_RETURN)
+            };
+
+            if next_pos >= end {
                 if from != to {
                     // Move the tail content to the `to` position
                     self.xml
@@ -552,23 +654,107 @@ impl Document {
                 to += end - from;
                 break; // No more '&' found
             } else {
-                if ampersand_pos > from {
+                if next_pos > from {
                     // Move the content before the '&' to the `to` position
                     self.xml
-                        .copy_within(from as usize..ampersand_pos as usize, to as usize);
-                    to += ampersand_pos - from;
+                        .copy_within(from as usize..next_pos as usize, to as usize);
+                    to += next_pos - from;
                 }
-                if let Some((new_from, new_to)) = self.translate_sequence(ampersand_pos + 1, to) {
-                    from = new_from;
-                    to = new_to;
+                if cfg!(feature = "parse_escapes") && self.xml[next_pos as usize] == AMPERSAND {
+                    if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
+                        from = new_from;
+                        to = new_to;
+                    } else {
+                        // Invalid escape sequence, just skip the '&'
+                        from += 1;
+                    }
                 } else {
-                    // Invalid escape sequence, just skip the '&'
-                    from += 1;
+                    // This is a carriage return
+                    self.xml[to as usize] = NEWLINE; // Replace with a newline character
+                    to += 1; // Move the `to` position forward
+                    from = next_pos
+                        + if (next_pos + 1) < end && self.xml[(next_pos + 1) as usize] == NEWLINE {
+                            2 // Move past the newline character if present
+                        } else {
+                            1
+                        };
                 }
             }
         }
 
-        Some((range.start, to))
+        range.start..to
+    }
+
+    /// Normalizes attribute values by removing unnecessary whitespace and escape sequences.
+    ///
+    /// This method scans through the specified range, looking for '&' characters
+    /// that indicate escape sequences. It replaces these sequences with their
+    /// UTF-8 representations and ensures that the attribute value is compacted
+    /// without leading or trailing whitespace.
+    ///
+    /// # Arguments
+    /// * `range` - The byte range in the XML buffer representing the attribute value
+    ///
+    /// # Returns
+    /// A new `XmlRange` representing the normalized attribute value, with leading
+    /// and trailing whitespace removed, and escape sequences translated.
+    ///
+    /// # Note
+    /// This method modifies the XML buffer in place, so the original range may be adjusted.
+    #[inline(always)]
+    fn normalize_attribute_value(&mut self, range: &XmlRange) -> XmlRange {
+        let end = range.end;
+        let mut to = range.start;
+        let mut from = range.start;
+        let mut space_added = false;
+
+        loop {
+            let next_pos =
+                self.scan_range_for_chartype_or_end(from..end, Chartype::ParseAtrNorm as u8);
+
+            if next_pos >= end {
+                if from != to {
+                    // Move the tail content to the `to` position
+                    self.xml
+                        .copy_within(from as usize..end as usize, to as usize);
+                }
+                to += end - from;
+                if to > range.start && self.xml[(to - 1) as usize] == SPACE {
+                    // If we added a space, we need to adjust the end position
+                    to -= 1; // Remove the last added space
+                }
+                break; // No more '&' or whitespace found
+            } else {
+                if next_pos > from {
+                    // Move the content before the '&' or whitespace to the `to` position
+                    self.xml
+                        .copy_within(from as usize..next_pos as usize, to as usize);
+                    to += next_pos - from;
+                    space_added = false; // Reset space added flag
+                }
+                if self.xml[next_pos as usize] == AMPERSAND {
+                    if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
+                        from = new_from;
+                        to = new_to;
+                    } else {
+                        // Invalid escape sequence, just skip the '&'
+                        from += 1;
+                    }
+                    space_added = false; // Reset space added flag
+                } else {
+                    // Handle whitespace normalization
+                    if !space_added && to != range.start {
+                        // Add a space if not already added
+                        self.xml[to as usize] = SPACE;
+                        to += 1;
+                        space_added = true;
+                    }
+                    from = next_pos + 1; // Move past the whitespace
+                }
+            }
+        }
+
+        range.start..to
     }
 
     /// Checks if a byte is of a specific character type.
@@ -681,7 +867,10 @@ impl Document {
         loop {
             state = match state {
                 State::Start => {
-                    scan_until_char!(self.xml, i, LESS_THAN);
+                    i = match self.scan_until_char(i, LESS_THAN) {
+                        Some(new_i) => new_i,
+                        None => break,
+                    };
                     State::ReadTag
                 }
                 State::ReadTag => {
@@ -702,19 +891,33 @@ impl Document {
                                 if i < size {
                                     if self.xml[i as usize..].starts_with(b"--") {
                                         i += 2;
-                                        skip_after_slice!(self.xml, i, 5000, &b"-->".as_slice());
+                                        i = match self.skip_after_slice(i, 5000, &b"-->".as_slice())
+                                        {
+                                            Some(new_i) => new_i,
+                                            None => break,
+                                        };
                                     } else if self.xml[i as usize..].starts_with(b"DOCTYPE") {
                                         i += 7;
-                                        scan_until_one_of_2_chars!(
-                                            self.xml,
+                                        i = match self.scan_until_one_of_2_chars(
                                             i,
                                             GREATER_THAN,
-                                            LEFT_BRACKET
-                                        );
+                                            LEFT_BRACKET,
+                                        ) {
+                                            Some(new_i) => new_i,
+                                            None => break,
+                                        };
+
                                         if self.xml[i as usize] == LEFT_BRACKET {
-                                            scan_until_char!(self.xml, i, RIGHT_BRACKET);
+                                            i = match self.scan_until_char(i, RIGHT_BRACKET) {
+                                                Some(new_i) => new_i,
+                                                None => break,
+                                            };
                                             i += 1; // skip ']'
-                                            skip_chartype!(self.xml, i, Chartype::Space);
+                                            i = match self.skip_chartype(i, Chartype::Space as u8) {
+                                                Some(new_i) => new_i,
+                                                None => break,
+                                            };
+
                                             if self.xml[i as usize] == GREATER_THAN {
                                                 i += 1; // skip '>'
                                             } else {
@@ -727,7 +930,11 @@ impl Document {
                                         i += 1; // skip '>'
                                     } else if self.xml[i as usize..].starts_with(b"[CDATA[") {
                                         i += 7;
-                                        skip_after_slice!(self.xml, i, 5000, &b"]]>".as_slice());
+                                        i = match self.skip_after_slice(i, 5000, &b"]]>".as_slice())
+                                        {
+                                            Some(new_i) => new_i,
+                                            None => break,
+                                        };
                                     } else {
                                         break;
                                     }
@@ -740,7 +947,10 @@ impl Document {
                             }
                             QUESTION_MARK => {
                                 i += 1;
-                                skip_after_slice!(self.xml, i, 500, &b"?>".as_slice());
+                                i = match self.skip_after_slice(i, 500, &b"?>".as_slice()) {
+                                    Some(new_i) => new_i,
+                                    None => break,
+                                };
                                 if i >= size {
                                     State::End
                                 } else {
@@ -760,7 +970,10 @@ impl Document {
                         );
                     }
                     i += 1; // skip first char of tag name
-                    skip_chartype!(self.xml, i, SYMBOL);
+                    i = match self.skip_chartype(i, SYMBOL) {
+                        Some(new_i) => new_i,
+                        None => break,
+                    };
 
                     let name_range = if cfg!(feature = "namespace_removal") {
                         // Remove namespace prefix from attribute name
@@ -782,8 +995,12 @@ impl Document {
                 }
                 State::ReadTagClose => {
                     let start = i;
-                    skip_chartype!(self.xml, i, Chartype::Space);
-                    scan_until_char_nobreak!(self.xml, i, GREATER_THAN);
+                    i = match self.skip_chartype(i, Chartype::Space as u8) {
+                        Some(new_i) => new_i,
+                        None => break,
+                    };
+
+                    i = self.scan_until_char_or_end(i, GREATER_THAN);
 
                     let name_range = if cfg!(feature = "namespace_removal") {
                         // Remove namespace prefix from attribute name
@@ -800,14 +1017,17 @@ impl Document {
                         self.get_parent_idx(parent_idx)?
                     };
                     i += 1;
-                    if i >= size {
+                    if i >= size || parent_idx == 0 {
                         State::End
                     } else {
                         State::ReadContent
                     }
                 }
                 State::ReadAttribute => {
-                    skip_chartype!(self.xml, i, Chartype::Space);
+                    i = match self.skip_chartype(i, Chartype::Space as u8) {
+                        Some(new_i) => new_i,
+                        None => break,
+                    };
                     match self.xml[i as usize] {
                         SLASH => {
                             i += 1;
@@ -824,7 +1044,11 @@ impl Document {
                             if i >= size {
                                 break;
                             }
-                            State::ReadContent
+                            if parent_idx == 0 {
+                                State::End
+                            } else {
+                                State::ReadContent
+                            }
                         }
                         GREATER_THAN => {
                             i += 1;
@@ -842,7 +1066,11 @@ impl Document {
                                 );
                             }
                             i += 1;
-                            skip_chartype!(self.xml, i, SYMBOL);
+                            i = match self.skip_chartype(i, SYMBOL) {
+                                Some(new_i) => new_i,
+                                None => break,
+                            };
+
                             if self.xml[i as usize] != EQUAL {
                                 return self.invalid("Attribute must have an '=' sign", i);
                             }
@@ -858,22 +1086,12 @@ impl Document {
                             }
                             i += 1;
                             let value_start = i;
-                            scan_until_char!(self.xml, i, quote);
-
-                            let value_range = if cfg!(feature = "parse_escapes") {
-                                // Parse and translate entities in the attribute value
-                                if let Some((_new_start, new_end)) =
-                                    self.parse_escapes(&(value_start..i))
-                                {
-                                    value_start..new_end
-                                } else {
-                                    return self
-                                        .invalid("Invalid entity in attribute value", value_start);
-                                }
-                            } else {
-                                // If escape parsing is not enabled, use the original range
-                                value_start..i
+                            i = match self.scan_until_char(i, quote) {
+                                Some(new_i) => new_i,
+                                None => break,
                             };
+
+                            let value_range = self.normalize_attribute_value(&(value_start..i));
 
                             let name_range = if cfg!(feature = "namespace_removal") {
                                 // Remove namespace prefix from attribute name
@@ -892,12 +1110,15 @@ impl Document {
                 }
                 State::ReadContent => {
                     let space_start = i;
-                    skip_chartype_nobreak!(self.xml, i, Chartype::Space);
+                    i = self.skip_chartype_or_end(i, Chartype::Space as u8);
                     if i >= size {
                         State::End
                     } else {
                         let mut start = i;
-                        scan_until_char!(self.xml, i, LESS_THAN);
+                        i = match self.scan_until_char(i, LESS_THAN) {
+                            Some(new_i) => new_i,
+                            None => break,
+                        };
 
                         if i > start {
                             let mut the_end = i;
@@ -908,22 +1129,13 @@ impl Document {
                                 start = space_start; // Reset start to space_start if not trimming
                             }
 
-                            let text_range = if cfg!(feature = "parse_escapes") {
-                                // Parse and translate entities in the content
-                                if let Some((_new_start, new_end)) =
-                                    self.parse_escapes(&(start..the_end))
-                                {
-                                    start..new_end
-                                } else {
-                                    return self.invalid("Invalid entity in content", start);
-                                }
-                            } else {
-                                // If escape parsing is not enabled, use the original range
-                                start..the_end
-                            };
-                            // Add text node with content
+                            let text_range = self.parse_pcdata(&(start..the_end));
+
                             self.add_node(parent_idx, NodeType::Text(text_range))?;
-                        } else if i > space_start && cfg!(feature = "keep_ws_only_pcdata") {
+                        } else if i > space_start
+                            && cfg!(feature = "keep_ws_only_pcdata")
+                            && parent_idx != 0
+                        {
                             self.add_node(parent_idx, NodeType::Text(space_start..i))?;
                         }
                         State::ReadTag

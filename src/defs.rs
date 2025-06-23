@@ -5,7 +5,31 @@
 
 use core::ops::Range;
 
+#[cfg(all(feature = "small_node_count", feature = "medium_node_count"))]
+compile_error!("feature \"small_node_count\" and feature \"medium_node_count\" cannot be enabled at the same time");
+
+#[cfg(all(feature = "small_node_count", feature = "large_node_count"))]
+compile_error!("feature \"small_node_count\" and feature \"large_node_count\" cannot be enabled at the same time");
+
+#[cfg(all(feature = "medium_node_count", feature = "large_node_count"))]
+compile_error!("feature \"medium_node_count\" and feature \"large_node_count\" cannot be enabled at the same time");
+
+#[cfg(not(any(
+    feature = "small_node_count",
+    feature = "medium_node_count",
+    feature = "large_node_count"
+)))]
+compile_error!("one of the features \"small_node_count\", \"medium_node_count\", or \"large_node_count\" must be enabled");
+
+#[cfg(feature = "small_node_count")]
 pub type NodeIdx = u16;
+
+#[cfg(feature = "medium_node_count")]
+pub type NodeIdx = u32;
+
+#[cfg(feature = "large_node_count")]
+pub type NodeIdx = u64;
+
 pub type AttrIdx = u16;
 pub type XmlIdx = u32;
 

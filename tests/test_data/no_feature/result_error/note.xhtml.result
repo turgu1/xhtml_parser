@@ -3,18 +3,20 @@ Document [
         tag_name: "parent"
         children: [
             Element {
-                tag_name: "child1"
+                tag_name: "ns:child1"
                 attributes: [
                     Attribute { name: "name", value: "<lé go>" }
                 ]
             }
             Text {
-                "Bonjour École maternelle! <être ou ne pas
-    être※,※telle est la question.>
-    "
+                "Bonjour &Eacute;cole maternelle! &lt;&ecirc;tre ou ne pas
+   &ecirc;tre&#x203b;,&#8251;telle est la question.&gt;   
+       
+       
+   "
             }
             Element {
-                tag_name: "child2"
+                tag_name: "ns:child1"
                 attributes: [
                     Attribute { name: "name", value: "rust" }
                 ]

@@ -153,7 +153,7 @@ mod xhtml_parser_tests {
         }
     }
 
-        #[test]
+    #[test]
     #[cfg(feature = "parse_escapes")]
     fn test_parse_escapes() {
         let unit_test = UnitTest::new("parse_escapes");
@@ -170,6 +170,41 @@ mod xhtml_parser_tests {
 
             if file_name.ends_with(".xhtml") {
                 println!("parse_escapes Testing File: {:?}", file_name);
+
+                let contents = std::fs::read(&file);
+                assert!(contents.is_ok(), "Failed to read file: {:?}", file_name);
+                let document = Document::new(contents.unwrap());
+
+                assert!(
+                    document.is_ok(),
+                    "Failed to process xml file: {:?} : {:?}",
+                    file_name,
+                    document.err().unwrap()
+                );
+
+                let data = format!("{:#?}", document.unwrap());
+                assert!(unit_test.check_result_with_file(&data, &file_name));
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "no_feature")]
+    fn test_parse_escapes() {
+        let unit_test = UnitTest::new("no_feature");
+
+        println!(
+            "no_feature Test Case Folder: {:?}",
+            unit_test.test_case_folder()
+        );
+
+        let files = unit_test.get_test_case_file_paths().unwrap();
+
+        for file in files {
+            let file_name = file.file_name().unwrap().to_str().unwrap();
+
+            if file_name.ends_with(".xhtml") {
+                println!("no_feature Testing File: {:?}", file_name);
 
                 let contents = std::fs::read(&file);
                 assert!(contents.is_ok(), "Failed to read file: {:?}", file_name);
