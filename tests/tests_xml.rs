@@ -4,6 +4,7 @@ mod xhtml_parser_tests {
     use xhtml_parser::node::Node;
 
     use test_support::unit_test::UnitTest;
+    use timelapse::{profile_end_print, profile_start, TimeLapse};
 
     #[test]
     fn test_accessing_tag_name() {
@@ -34,6 +35,40 @@ mod xhtml_parser_tests {
                 let contents = std::fs::read(&file);
                 assert!(contents.is_ok(), "Failed to read file: {:?}", file_name);
                 let document = Document::new(contents.unwrap());
+
+                assert!(
+                    document.is_ok(),
+                    "Failed to process xml file: {:?} : {:?}",
+                    file_name,
+                    document.err().unwrap()
+                );
+
+                let data = format!("{:#?}", document.unwrap());
+                assert!(unit_test.check_result_with_file(&data, &file_name));
+            }
+        }
+    }
+
+    #[test]
+    fn test_speed_test() {
+        let unit_test = UnitTest::new("speed_test");
+
+        println!("Speed Test Case Folder: {:?}", unit_test.test_case_folder());
+
+        let files = unit_test.get_test_case_file_paths().unwrap();
+
+        for file in files {
+            let file_name = file.file_name().unwrap().to_str().unwrap();
+
+            if file_name.ends_with(".xhtml") {
+                println!("Speed Testing File: {:?}", file_name);
+
+                let contents = std::fs::read(&file);
+                assert!(contents.is_ok(), "Failed to read file: {:?}", file_name);
+
+                profile_start!(speed_testing);
+                let document = Document::new(contents.unwrap());
+                profile_end_print!(speed_testing);
 
                 assert!(
                     document.is_ok(),
