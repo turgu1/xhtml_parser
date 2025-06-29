@@ -1,6 +1,6 @@
 [package]
 name = "xhtml_parser"
-version = "0.2.4"
+version = "0.2.5"
 authors = ["Guy Turcotte"]
 description = "Non-validating XHTML Tree-based parser."
 readme = "README.md"
