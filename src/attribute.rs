@@ -29,7 +29,7 @@ impl AttributeInfo {
     ///
     /// # Returns
     /// A new AttributeInfo instance
-    pub fn new(name: XmlLocation, value: XmlLocation) -> Self {
+    pub(crate) fn new(name: XmlLocation, value: XmlLocation) -> Self {
         AttributeInfo { name, value }
     }
 }

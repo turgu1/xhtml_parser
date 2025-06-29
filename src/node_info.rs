@@ -30,7 +30,7 @@ impl<'xml> NodeInfo {
     /// - `parent_idx`: The index of the parent node.
     /// - `node_type`: The type of the node (e.g., element, text, comment).
     #[inline]
-    pub fn new(node_idx: NodeIdx, parent_idx: NodeIdx, node_type: NodeType) -> Self {
+    pub(crate) fn new(node_idx: NodeIdx, parent_idx: NodeIdx, node_type: NodeType) -> Self {
         NodeInfo {
             //node_idx,
             parent_idx,

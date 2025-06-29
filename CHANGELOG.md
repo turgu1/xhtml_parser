@@ -1,5 +1,10 @@
 ## ChangeLog
 
+### [0.2.5] - 2025-06-29
+
+- Restrict visibility of some methods to the crate.
+- Optimize some algorithms of the parsing process through the use of `memchr()`.
+
 ### [0.2.4] - 2025-06-29
 
 - New feature: `use_cstr`: By using indices into null-terminated `[u8]` slices instead of a range of indices (to keep the location of strings located in the XML document), this feature reduces the size of nodes to 20 bytes instead of 24 (17% gain in size for each node). For attributes, the size is reduced from 16 bytes to 8 bytes (50% gain in size for each attribute). This change optimizes the memory required to keep the XML DOM-like tree accessible, which is particularly beneficial for embedded applications where available memory is limited. Note that using this feature reduces the overall performance of the parser by approximately 5% to 10%.

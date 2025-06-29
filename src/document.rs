@@ -234,7 +234,7 @@ impl Document {
     /// # Returns
     /// - `Ok(NodeIdx)`: The index of the newly added node.
     /// - `Err(ParseXmlError)`: If there is an error adding the node (e.g., no more space).
-    pub fn add_node(
+    pub(crate) fn add_node(
         &mut self,
         parent_idx: NodeIdx,
         mut node_type: NodeType,
@@ -275,7 +275,7 @@ impl Document {
     /// # Returns
     /// - `Ok(AttrIdx)`: The index of the newly added attribute.
     /// - `Err(ParseXmlError)`: If there is an error adding the attribute (e.g., node is not an element).
-    pub fn add_attribute(
+    pub(crate) fn add_attribute(
         &mut self,
         node_idx: NodeIdx,
         name: XmlLocation,
@@ -316,8 +316,8 @@ impl Document {
         }
         #[cfg(feature = "use_cstr")]
         {
-            let content =
-                std::ffi::CStr::from_bytes_until_nul(&self.xml[location as usize..]).unwrap();
+            let content = std::ffi::CStr::from_bytes_until_nul(&self.xml[location as usize..])
+                .unwrap_or("cstr not valid");
             content.to_str().unwrap_or("non valid utf-8")
         }
     }

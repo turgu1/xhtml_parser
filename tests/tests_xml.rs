@@ -231,8 +231,8 @@ mod xhtml_parser_tests {
     }
 
     #[test]
-    #[cfg(feature = "no_feature")]
-    fn test_parse_escapes() {
+    #[cfg(not(any(feature = "all_features")))]
+    fn test_parse_no_feature() {
         let unit_test = UnitTest::new("no_feature");
 
         println!(

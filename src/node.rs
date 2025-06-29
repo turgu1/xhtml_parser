@@ -59,7 +59,7 @@ impl<'xml> Node<'xml> {
     /// - `idx`: The index of the node in the document.
     /// - `node_info`: A reference to the `NodeInfo` containing metadata about the node.
     /// - `doc`: A reference to the `Document` containing the XML data.
-    pub fn new(idx: NodeIdx, node_info: &'xml NodeInfo, doc: &'xml Document) -> Self {
+    pub(crate) fn new(idx: NodeIdx, node_info: &'xml NodeInfo, doc: &'xml Document) -> Self {
         Node {
             idx,
             node_info,
