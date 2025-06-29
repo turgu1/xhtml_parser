@@ -3,7 +3,7 @@ Document [
         tag_name: "html"
         attributes: [
             Attribute { name: "xmlns", value: "http://www.w3.org/1999/xhtml" }
-            Attribute { name: "xml:lang", value: "en" }
+            Attribute { name: "lang", value: "en" }
             Attribute { name: "lang", value: "fr" }
         ]
         children: [

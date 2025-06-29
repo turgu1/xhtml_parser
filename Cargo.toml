@@ -16,7 +16,7 @@ memchr = "2.7.4"
 phf = { version = "0.11", features = ["macros"] }
 
 [features]
-default = ["small_node_count"]
+default = ["namespace_removal", "parse_escapes", "small_node_count"]
 all_features = [
     "namespace_removal",
     "parse_escapes",
