@@ -231,7 +231,13 @@ mod xhtml_parser_tests {
     }
 
     #[test]
-    #[cfg(not(any(feature = "all_features")))]
+    #[cfg(not(any(
+        feature = "namespace_removal",
+        feature = "parse_escapes",
+        feature = "trim_pcdata",
+        feature = "keep_ws_only_pcdata",
+        feature = "use_cstr"
+    )))]
     fn test_parse_no_feature() {
         let unit_test = UnitTest::new("no_feature");
 
