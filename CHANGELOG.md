@@ -3,7 +3,9 @@
 ### [0.2.5] - 2025-06-29
 
 - Restrict visibility of some methods to the crate.
-- Optimize some algorithms of the parsing process through the use of `memchr()`.
+- Basic performance comparison with PUGIXML.
+- Code refactoring.
+- phf crate version is now 0.12 .
 
 ### [0.2.4] - 2025-06-29
 

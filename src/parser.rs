@@ -10,8 +10,10 @@ use crate::document::Document;
 use crate::node_type::NodeType;
 
 use kmp::kmp_find;
-use memchr::{memchr, memchr2};
 use phf::phf_map;
+
+use memchr::memchr2;
+// use memchr::{memchr, memchr2};
 
 use core::ops::Range;
 
@@ -210,6 +212,13 @@ static ENTITIES_MAP: phf::Map<&'static [u8], &'static [u8]> = phf_map! {
     b"euro"   => b"\xE2\x80\xAC", // euro sign, U+20AC NEW
 };
 
+macro_rules! search_char {
+    ($needle:expr, $haystack:expr) => {
+        //memchr($needle, $haystack)
+        $haystack.iter().position(|&c| c == $needle)
+    };
+}
+
 impl Document {
     /// Scans the XML buffer until a specific character is found or the end of the buffer is reached.
     ///
@@ -226,7 +235,7 @@ impl Document {
     #[inline(always)]
     fn scan_until_char_or_end(&self, p: XmlIdx, target_char: u8) -> XmlIdx {
         if p < self.xml.len() as XmlIdx {
-            if let Some(pos) = memchr(target_char, &self.xml[p as usize..]) {
+            if let Some(pos) = search_char!(target_char, &self.xml[p as usize..]) {
                 p + pos as XmlIdx
             } else {
                 self.xml.len() as XmlIdx // Move to the end if no more characters match
@@ -318,21 +327,21 @@ impl Document {
     /// Scans a range in the XML buffer for a specific character and returns the position of the first occurrence.
     ///
     /// This method searches for the specified character within the given range and returns the position
-    /// of the first occurrence of the character. If the character is not found, it returns 
+    /// of the first occurrence of the character. If the character is not found, it returns
     /// the end of the range.
-    /// 
+    ///
     /// # Arguments
     /// * `range` - The range within the XML buffer to search
     /// * `target_char` - The byte value of the character to search for
-    /// 
+    ///
     /// # Returns
     /// `XmlIdx` - The position of the first occurrence of the character,
     /// or the end of the range if the character is not found.
     #[inline(always)]
     fn scan_range_for_char_or_end(&self, range: XmlRange, target_char: u8) -> XmlIdx {
-        if let Some(pos) = memchr(
+        if let Some(pos) = search_char!(
             target_char,
-            &self.xml[range.start as usize..range.end as usize],
+            &self.xml[range.start as usize..range.end as usize]
         ) {
             range.start + pos as XmlIdx
         } else {
@@ -358,7 +367,7 @@ impl Document {
     fn scan_until_char(&self, p: XmlIdx, target_char: u8) -> Option<XmlIdx> {
         if p >= self.xml.len() as XmlIdx {
             None
-        } else if let Some(pos) = memchr(target_char, &self.xml[p as usize..]) {
+        } else if let Some(pos) = search_char!(target_char, &self.xml[p as usize..]) {
             Some(p + pos as XmlIdx)
         } else {
             None
@@ -434,7 +443,7 @@ impl Document {
     #[inline(always)]
     fn scan_until_char_or_nochange(&self, p: XmlIdx, target_char: u8) -> XmlIdx {
         if p < self.xml.len() as XmlIdx {
-            if let Some(pos) = memchr(target_char, &self.xml[p as usize..]) {
+            if let Some(pos) = search_char!(target_char, &self.xml[p as usize..]) {
                 return p + pos as XmlIdx;
             }
         }
@@ -835,7 +844,7 @@ impl Document {
     /// - `localname` remains `localname` (no change if no prefix exists)
     #[inline]
     fn remove_namespace_prefix(&mut self, range: XmlRange) -> XmlRange {
-        let colon_pos = memchr(COLON, &self.xml[range.start as usize..range.end as usize])
+        let colon_pos = search_char!(COLON, &self.xml[range.start as usize..range.end as usize])
             .map_or(range.end, |pos| range.start + pos as XmlIdx);
 
         if colon_pos < range.end {

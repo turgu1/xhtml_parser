@@ -113,7 +113,7 @@ impl Document {
     }
 
     /// Returns the root node of the document.
-    pub fn root(&self) -> Option<Node> {
+    pub fn root(&self) -> Option<Node<'_>> {
         if self.nodes.len() > 1 {
             Some(Node::new(1, &self.nodes[1], self))
         } else {
@@ -151,7 +151,7 @@ impl Document {
     /// # Returns
     /// - `Ok(Node)`: The node at the specified index.
     /// - `Err(ParseXmlError)`: If the node index is invalid or out of bounds.
-    pub fn get_node(&self, node_idx: NodeIdx) -> Result<Node, ParseXmlError> {
+    pub fn get_node(&self, node_idx: NodeIdx) -> Result<Node<'_>, ParseXmlError> {
         if node_idx as usize >= self.nodes.len() {
             return Err(ParseXmlError::InvalidXml(format!(
                 "Invalid node index: {}",
@@ -317,7 +317,7 @@ impl Document {
         #[cfg(feature = "use_cstr")]
         {
             let content = std::ffi::CStr::from_bytes_until_nul(&self.xml[location as usize..])
-                .unwrap_or("cstr not valid");
+                .unwrap_or(&c"cstr not valid");
             content.to_str().unwrap_or("non valid utf-8")
         }
     }
@@ -340,7 +340,7 @@ impl Document {
     ///
     /// assert_eq!(all_nodes.len(), 4); // root, child, Text, totototo
     #[inline]
-    pub fn all_nodes(&self) -> Nodes {
+    pub fn all_nodes(&self) -> Nodes<'_> {
         Nodes::new(self)
     }
 
@@ -370,7 +370,7 @@ impl Document {
     /// assert!(descendants[2].is("totototo"));
     /// ```
     #[inline]
-    pub fn descendants(&self, node_idx: NodeIdx) -> Nodes {
+    pub fn descendants(&self, node_idx: NodeIdx) -> Nodes<'_> {
         Nodes::descendants(self, node_idx)
     }
 
@@ -431,7 +431,7 @@ impl Document {
     }
 
     /// Returns the next sequential node after the node index parameter.
-    pub fn next_seq_node(&self, current: NodeIdx) -> Option<Node> {
+    pub fn next_seq_node(&self, current: NodeIdx) -> Option<Node<'_>> {
         let next = current + 1;
         if next < self.nodes.len() as NodeIdx {
             self.get_node(next).ok()
@@ -441,7 +441,7 @@ impl Document {
     }
 
     /// Returns the previous sequential node before the node index parameter.
-    pub fn previous_seq_node(&self, current: NodeIdx) -> Option<Node> {
+    pub fn previous_seq_node(&self, current: NodeIdx) -> Option<Node<'_>> {
         let previous = current - 1;
         if previous > 0 {
             self.get_node(previous).ok()

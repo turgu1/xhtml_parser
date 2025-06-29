@@ -15,11 +15,8 @@
 //! The parser uses a state machine to manage the parsing process, transitioning between different states.
 //! It includes functionality for handling character entities and whitespace normalization.
 //!
-//!
 //! The code is organized into modules, with a focus on clarity and maintainability.
 //! It is capable of handling a wide range of XML/XHTML documents, including those with namespaces and complex structures.
-//!
-//! The parser is open-source and can be freely used and modified under the terms of the MIT license.
 //!
 //! For vaious examples of usage, please refer to the documentation and tests provided in the repository.
 //!
@@ -36,12 +33,27 @@
 //! - `use_cstr`: Uses an index into a null-terminated `[u8]` slice (C-style string) instead of a `Range` to represent string locations in the XML content. Default is **disabled**.
 //! - `all_features` to get all features enabled under a single one, but without the following: `small_node_count`, `medium_node_count`, and `large_node_count`.
 //!
+//! ## Basic performance comparison
+//!
+//! For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, OS, compiler versions, enabled options/features, etc.).
+//!
+//! |                  | PUGIXML | XHTML_PARSER |
+//! |------------------|:-------:|:------------:|
+//! | Average Duration | 8429 µS |   4190 µS    |
+//! | Std Deviation    |  638 µS |    292 µS    |
+//!
+//! ## Licensing
+//!
+//! The parser is open-source and can be freely used and modified under the terms of the MIT license.
+//!
 //! ## ChangeLog
 //!
 //! ### [0.2.5] - 2025-06-29
 //!
 //! - Restrict visibility of some methods to the crate.
-//! - Optimize some algorithms of the parsing process through the use of `memchr()`.
+//! - Basic performance comparison with PUGIXML.
+//! - Code refactoring.
+//! - phf crate version is now 0.12 .
 //!
 //! ### [0.2.4] - 2025-06-29
 //!

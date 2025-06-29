@@ -11,6 +11,17 @@ The parsing process is limited to normal tags, attributes, and PCData content. N
 - Namespace prefix are removed from tag and attribute names (`namespace_removal` feature).
 - Standard XML entities (`&amp;`, `&lt;`, `&gt;`, `&apos;`, and `&quot;`), Unicode numerical character references (`&#xhhhh;` and `&#nnnn;`), and XHTML-related entities (as described [here](https://www.w3.org/TR/xhtml-modularization/dtd_module_defs.html#a_dtd_xhtml_character_entities)) are translated to their UTF-8 representation (`parse_escapes` feature).
 
+### Basic performance comparison
+
+For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, OS, compiler versions, enabled options/features, etc.).
+
+|                  | PUGIXML | XHTML_PARSER |
+|------------------|:-------:|:------------:|
+| Average Duration | 8429 µS |   4190 µS    |
+| Std Deviation    |  638 µS |    292 µS    |
+
+### Licensing
+
 The parser is open-source and can be freely used and modified under the terms of the MIT license.
 
 ### Cargo defined Features
@@ -31,7 +42,9 @@ The parser is open-source and can be freely used and modified under the terms of
 ### [0.2.5] - 2025-06-29
 
 - Restrict visibility of some methods to the crate.
-- Optimize some algorithms of the parsing process through the use of `memchr()`.
+- Basic performance comparison with PUGIXML.
+- Code refactoring.
+- phf crate version is now 0.12 .
 
 ### [0.2.4] - 2025-06-29
 

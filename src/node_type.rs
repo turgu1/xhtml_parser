@@ -11,25 +11,6 @@
 ///   - `attributes`: Range information for the element's attributes
 /// * `Text` - A text node containing character data between elements
 ///   - Contains location information for the text content in the source
-///
-/// # Examples
-///
-/// ```rust
-/// use crate::xhtml_parser::node_type::NodeType;
-/// use crate::xhtml_parser::defs::{XmlLocation, AttributeRange};
-///
-/// // Head node
-/// let head = NodeType::Head;
-///
-/// // Element node with name and attributes
-/// let element = NodeType::Element {
-///     name: 0..5,
-///     attributes: 6..20,
-/// };
-///
-/// // Text node
-/// let text = NodeType::Text(25..35);
-/// ```
 use crate::defs::{AttributeRange, XmlLocation};
 use std::fmt::Debug;
 

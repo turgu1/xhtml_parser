@@ -267,7 +267,7 @@ impl<'xml> Node<'xml> {
     /// assert!(children[0].is("child1"));
     /// assert!(children[1].is("child2"));
     /// ```
-    pub fn children(&self) -> NodeChildren {
+    pub fn children(&self) -> NodeChildren<'xml> {
         if self.node_info.first_child_idx() == 0 {
             NodeChildren {
                 front: None,
