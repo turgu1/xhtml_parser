@@ -82,9 +82,19 @@ impl<'xml> NodeInfo {
     /// For the head node, this is always `0`.
     #[inline]
     pub fn position(&self) -> XmlIdx {
+        #[cfg(feature = "use_cstr")]
+        {
+            match &self.node_type {
+                NodeType::Element { name, .. } => *name,
+                NodeType::Text(location) => *location,
+                NodeType::Head => 0,
+            }
+        }
+
+        #[cfg(not(feature = "use_cstr"))]
         match &self.node_type {
             NodeType::Element { name, .. } => name.start,
-            NodeType::Text(range) => range.start,
+            NodeType::Text(location) => location.start,
             NodeType::Head => 0,
         }
     }

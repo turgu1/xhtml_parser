@@ -5,7 +5,7 @@
 
 use std::fmt::{self, Debug};
 
-use crate::defs::XmlRange;
+use crate::defs::XmlLocation;
 use crate::document::Document;
 use crate::node::Node;
 use crate::node_type::NodeType;
@@ -16,8 +16,8 @@ use crate::node_type::NodeType;
 /// name and value are located, allowing for efficient string retrieval without copying.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AttributeInfo {
-    name: XmlRange,
-    value: XmlRange,
+    name: XmlLocation,
+    value: XmlLocation,
 }
 
 impl AttributeInfo {
@@ -29,7 +29,7 @@ impl AttributeInfo {
     ///
     /// # Returns
     /// A new AttributeInfo instance
-    pub fn new(name: XmlRange, value: XmlRange) -> Self {
+    pub fn new(name: XmlLocation, value: XmlLocation) -> Self {
         AttributeInfo { name, value }
     }
 }
@@ -50,7 +50,7 @@ impl<'xml> Attribute<'xml> {
     /// A string slice containing the attribute name
     #[inline]
     pub fn name(&self) -> &str {
-        self.doc.get_str_from_range(&self.data.name)
+        self.doc.get_str_from_location(self.data.name.clone())
     }
 
     /// Returns true if the attribute's name matches the given string.
@@ -65,7 +65,7 @@ impl<'xml> Attribute<'xml> {
     /// A string slice containing the attribute value
     #[inline]
     pub fn value(&self) -> &'xml str {
-        self.doc.get_str_from_range(&self.data.value)
+        self.doc.get_str_from_location(self.data.value.clone())
     }
 }
 

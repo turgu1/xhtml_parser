@@ -1,5 +1,12 @@
 ## ChangeLog
 
+### [0.2.4] - 2025-06-29
+
+- New feature: `use_cstr`: By using indices into null-terminated `[u8]` slices instead of a range of indices (to keep the location of strings located in the XML document), this feature reduces the size of nodes to 20 bytes instead of 24 (17% gain in size for each node). For attributes, the size is reduced from 16 bytes to 8 bytes (50% gain in size for each attribute). This change optimizes the memory required to keep the XML DOM-like tree accessible, which is particularly beneficial for embedded applications where available memory is limited. Note that using this feature reduces the overall performance of the parser by approximately 5% to 10%.
+- New `all_features` to get all features enabled under a single one, but without the following: `small_node_count`, `medium_node_count`, and `large_node_count`.
+- A new test case for performance computation was added.
+- The `no_feature` feature was removed.
+
 ### [0.2.3] - 2025-06-23
 
 - Attribute value normalization: Whitespace (space, tab, carriage-return, line-feed) at the beginning and end of attribute values are removed. All other whitespace character sequences are replaced with a single space. All known entities (`&..;`) are translated.

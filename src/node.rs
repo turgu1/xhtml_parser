@@ -88,7 +88,7 @@ impl<'xml> Node<'xml> {
     /// ```
     pub fn tag_name(&self) -> &str {
         match &self.node_info.node_type() {
-            NodeType::Element { name, .. } => self.doc.get_str_from_range(name),
+            NodeType::Element { name, .. } => self.doc.get_str_from_location(name.clone()),
             _ => "", // No tag name for non-element nodes
         }
     }
@@ -119,7 +119,9 @@ impl<'xml> Node<'xml> {
     /// ```
     pub fn text(&self) -> Option<&'xml str> {
         match &self.node_info.node_type() {
-            NodeType::Text(text_range) => Some(self.doc.get_str_from_range(text_range)),
+            NodeType::Text(text_location) => {
+                Some(self.doc.get_str_from_location(text_location.clone()))
+            }
             _ => None,
         }
     }

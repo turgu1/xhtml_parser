@@ -16,7 +16,7 @@
 ///
 /// ```rust
 /// use crate::xhtml_parser::node_type::NodeType;
-/// use crate::xhtml_parser::defs::{XmlRange, AttributeRange};
+/// use crate::xhtml_parser::defs::{XmlLocation, AttributeRange};
 ///
 /// // Head node
 /// let head = NodeType::Head;
@@ -30,17 +30,17 @@
 /// // Text node
 /// let text = NodeType::Text(25..35);
 /// ```
-use crate::defs::{AttributeRange, XmlRange};
+use crate::defs::{AttributeRange, XmlLocation};
 use std::fmt::Debug;
 
 #[derive(Clone, PartialEq, Eq)]
 pub enum NodeType {
     Head,
     Element {
-        name: XmlRange,
+        name: XmlLocation,
         attributes: AttributeRange,
     },
-    Text(XmlRange),
+    Text(XmlLocation),
 }
 
 /// Custom implementation of the `Debug` trait for `NodeType`.

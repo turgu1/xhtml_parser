@@ -77,7 +77,14 @@ mod xhtml_parser_tests {
                     document.err().unwrap()
                 );
 
-                let data = format!("{:#?}", document.unwrap());
+                let doc = document.unwrap();
+
+                println!("Node count: {}", doc.last_node_idx());
+
+                profile_start!(formatting_data);
+                let data = format!("{:#?}", doc);
+                profile_end_print!(formatting_data);
+
                 assert!(unit_test.check_result_with_file(&data, &file_name));
             }
         }

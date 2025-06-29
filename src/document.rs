@@ -11,7 +11,9 @@ use memchr::memchr_iter;
 use std::fmt::{self, Debug};
 
 use crate::attribute::{Attribute, AttributeInfo, Attributes};
-use crate::defs::{AttrIdx, AttributeRange, NodeIdx, NodeRange, ParseXmlError, XmlIdx, XmlRange};
+use crate::defs::{
+    AttrIdx, AttributeRange, NodeIdx, NodeRange, ParseXmlError, XmlIdx, XmlLocation,
+};
 use crate::node::Node;
 use crate::node_info::NodeInfo;
 use crate::node_type::NodeType;
@@ -124,7 +126,7 @@ impl Document {
     /// # Returns
     /// - `true`: If the document contains only the head node (no other nodes).
     /// - `false`: If the document contains nodes other than the head node.
-    fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.nodes.len() <= 1 // Only the head node exists
     }
 
@@ -133,7 +135,7 @@ impl Document {
     /// # Returns
     /// - `NodeIdx`: The index of the last node in the document.
     /// - `0`: If the document is empty (no nodes).
-    fn last_node_idx(&self) -> NodeIdx {
+    pub fn last_node_idx(&self) -> NodeIdx {
         if self.is_empty() {
             0 // No nodes, return 0
         } else {
@@ -276,8 +278,8 @@ impl Document {
     pub fn add_attribute(
         &mut self,
         node_idx: NodeIdx,
-        name: XmlRange,
-        value: XmlRange,
+        name: XmlLocation,
+        value: XmlLocation,
     ) -> Result<AttrIdx, ParseXmlError> {
         let attribute_idx = self.attributes.len() as AttrIdx;
         self.attributes.push(AttributeInfo::new(name, value));
@@ -303,12 +305,21 @@ impl Document {
 
     /// Retrieves a string slice from the XML content based on the given range.
     /// # Arguments
-    /// - `range`: A reference to an `XmlRange` that specifies the start and end indices of the desired substring.
+    /// - `range`: A reference to an `XmlLocation` that specifies the start and end indices of the desired substring.
     /// # Returns
     /// - `&str`: A string slice containing the XML content from the specified range.
-    pub fn get_str_from_range<'xml>(&'xml self, range: &XmlRange) -> &'xml str {
-        let xml_content = &self.xml[range.start as usize..range.end as usize];
-        std::str::from_utf8(xml_content).unwrap_or("non valid utf-8")
+    pub fn get_str_from_location<'xml>(&'xml self, location: XmlLocation) -> &'xml str {
+        #[cfg(not(feature = "use_cstr"))]
+        {
+            let xml_content = &self.xml[location.start as usize..location.end as usize];
+            std::str::from_utf8(xml_content).unwrap_or("non valid utf-8")
+        }
+        #[cfg(feature = "use_cstr")]
+        {
+            let content =
+                std::ffi::CStr::from_bytes_until_nul(&self.xml[location as usize..]).unwrap();
+            content.to_str().unwrap_or("non valid utf-8")
+        }
     }
 
     /// Returns an iterator over all nodes in the document.

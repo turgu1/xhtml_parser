@@ -20,12 +20,20 @@ The parser is open-source and can be freely used and modified under the terms of
 - `parse_escapes`: Enables parsing of character escapes sequences (`&..;`) in PCData nodes and attribute values. Default is **enabled**.
 - `keep_ws_only_pcdata`: all PCData nodes that are composed of whitespace only will be kept. Default is **disabled**.
 - `trim_pcdata`: trim whitespaces at beginning and end of PCData nodes. Default is **disabled**.
-- `no_feature`: Disables all features. Default is **disabled**.
 - `small_node_count`: Uses 16-bit indices for the nodes vector. Default is **enabled**.
 - `medium_node_count`: Uses 32-bit indices for the nodes vector. Default is **disabled**.
 - `large_node_count`: Uses 64-bit indices for the nodes vector. Default is **disabled**.
+- `use_cstr`: Uses an index into a null-terminated `[u8]` slice (C-style string) instead of a `Range` to represent string locations in the XML content. Default is **disabled**.
+- `all_features` to get all features enabled under a single one, but without the following: `small_node_count`, `medium_node_count`, and `large_node_count`.
 
 ## ChangeLog
+
+### [0.2.4] - 2025-06-28
+
+- New feature: `use_cstr`: By using indices into null-terminated `[u8]` slices instead of a range of indices (to keep the location of strings located in the XML document), this feature reduces the size of nodes to 20 bytes instead of 24 (17% gain in size for each node). For attributes, the size is reduced from 16 bytes to 8 bytes (50% gain in size for each attribute). This change optimizes the memory required to keep the XML DOM-like tree accessible, which is particularly beneficial for embedded applications where available memory is limited. Note that using this feature reduces the overall performance of the parser by approximately 5% to 10%.
+- New `all_features` to get all features enabled under a single one, but without the following: `small_node_count`, `medium_node_count`, and `large_node_count`.
+- A new test case for performance computation was added.
+- The `no_feature` feature was removed.
 
 ### [0.2.3] - 2025-06-23
 

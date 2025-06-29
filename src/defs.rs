@@ -33,7 +33,12 @@ pub type NodeIdx = u64;
 pub type AttrIdx = u16;
 pub type XmlIdx = u32;
 
-pub type XmlRange = Range<XmlIdx>;
+#[cfg(feature = "use_cstr")]
+pub type XmlLocation = XmlIdx;
+
+#[cfg(not(feature = "use_cstr"))]
+pub type XmlLocation = Range<XmlIdx>;
+
 pub type NodeRange = Range<NodeIdx>;
 pub type AttributeRange = Range<AttrIdx>;
 
