@@ -1,6 +1,6 @@
 [package]
 name = "xhtml_parser"
-version = "0.2.5"
+version = "0.2.6"
 authors = ["Guy Turcotte"]
 description = "Non-validating XHTML Tree-based parser."
 readme = "README.md"
@@ -12,7 +12,7 @@ license = "MIT"
 [dependencies]
 kmp = "0.1.1"
 log = "0.4.27"
-memchr = { version = "2.7.4", features = ["std"] }
+memchr = { version = "2.7.4", default-features = false }
 phf = { version = "0.12", features = ["macros"] }
 
 [features]

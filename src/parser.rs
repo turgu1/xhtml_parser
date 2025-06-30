@@ -12,8 +12,8 @@ use crate::node_type::NodeType;
 use kmp::kmp_find;
 use phf::phf_map;
 
-use memchr::memchr2;
-// use memchr::{memchr, memchr2};
+//use memchr::memchr2;
+use memchr::{memchr, memchr2};
 
 use core::ops::Range;
 
@@ -214,8 +214,8 @@ static ENTITIES_MAP: phf::Map<&'static [u8], &'static [u8]> = phf_map! {
 
 macro_rules! search_char {
     ($needle:expr, $haystack:expr) => {
-        //memchr($needle, $haystack)
-        $haystack.iter().position(|&c| c == $needle)
+        memchr($needle, $haystack)
+        //$haystack.iter().position(|&c| c == $needle)
     };
 }
 

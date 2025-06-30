@@ -35,18 +35,26 @@
 //!
 //! ## Basic performance comparison
 //!
-//! For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, OS, compiler versions, enabled options/features, etc.).
+//! For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. Used the last version of PUGIXML with the default options. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, OS, compiler versions, enabled options/features, data caching, etc.).
 //!
 //! |                  | PUGIXML | XHTML_PARSER |
 //! |------------------|:-------:|:------------:|
-//! | Average Duration | 8429 µS |   4190 µS    |
-//! | Std Deviation    |  638 µS |    292 µS    |
+//! | Average Duration | 5856 µS |   3814 µS    |
+//! | Std Deviation    |  266 µS |     90 µS    |
 //!
 //! ## Licensing
 //!
 //! The parser is open-source and can be freely used and modified under the terms of the MIT license.
 //!
 //! ## ChangeLog
+//!
+//! ### [0.2.6] - 2025-06-30
+//!
+//! Performance comparison revisited.
+//! - Using `memchr` for char search instead of `.iter().position()`. Can easily be changed through the `parser::seach_char!()` macro.
+//! - The `memchr` crate is used without the `std` option.
+//! - Using the last PUGIXML version with default options to redo performance comparison.
+//! - Performance table adjusted accordingly.
 //!
 //! ### [0.2.5] - 2025-06-29
 //!

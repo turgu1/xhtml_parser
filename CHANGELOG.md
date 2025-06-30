@@ -1,5 +1,13 @@
 ## ChangeLog
 
+### [0.2.6] - 2025-06-30
+
+Performance comparison revisited.
+- Using `memchr` for char search instead of `.iter().position()`. Can easily be changed through the `parser::seach_char!()` macro.
+- The `memchr` crate is used without the `std` option.
+- Using the last PUGIXML version with default options to redo performance comparison. 
+- Performance table adjusted accordingly.
+
 ### [0.2.5] - 2025-06-29
 
 - Restrict visibility of some methods to the crate.
