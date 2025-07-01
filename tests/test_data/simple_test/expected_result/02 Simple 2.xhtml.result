@@ -5,7 +5,7 @@ Document [
             Element {
                 tag_name: "child1"
                 attributes: [
-                    Attribute { name: "name", value: "<lé go>" }
+                    Attribute { name: "name", value: "<lé é é go>" }
                 ]
             }
             Text {

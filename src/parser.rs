@@ -279,16 +279,16 @@ impl Document {
     ///
     /// # Arguments
     /// * `range` - The range within the XML buffer to search
-    /// * `chartype` - The chartype to search for, represented as a bitmask
+    /// * `chartype` - The chartype to search for, represented as a Chartype enum
     ///
     /// # Returns
     /// `Option<XmlIdx>` - The position of the first occurrence of the character matching the chartype,
     /// or `None` if no such character is found within
     #[inline(always)]
-    fn scan_range_for_chartype(&self, range: XmlRange, chartype: u8) -> Option<XmlIdx> {
+    fn scan_range_for_chartype(&self, range: XmlRange, chartype: Chartype) -> Option<XmlIdx> {
         (self.xml[range.start as usize..range.end as usize])
             .iter()
-            .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) != 0)
+            .position(|&c| (CHARTYPE_TABLE[c as usize] & (chartype as u8)) != 0)
             .map(|pos| range.start + pos as XmlIdx)
     }
 
@@ -349,16 +349,16 @@ impl Document {
     ///
     /// # Returns
     /// `Option<XmlIdx>` - The position of the found character matching the chartype,
-    /// or `None` if no such character is found or if the position `p`
+    /// or `None` if no such character is found within the specified range or if the position `p`
     /// is beyond the end of the XML buffer.
     #[inline(always)]
-    fn scan_until_chartype(&self, p: XmlIdx, chartype: u8) -> Option<XmlIdx> {
+    fn scan_until_chartype(&self, p: XmlIdx, chartype: Chartype) -> Option<XmlIdx> {
         if p >= self.xml.len() as XmlIdx {
             None
         } else {
             (self.xml[p as usize..])
                 .iter()
-                .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) != 0)
+                .position(|&c| (CHARTYPE_TABLE[c as usize] & (chartype as u8)) != 0)
                 .map(|pos| p + pos as XmlIdx)
         }
     }
@@ -485,45 +485,67 @@ impl Document {
         Ok(())
     }
 
-    /// Converts a byte slice containing ASCII decimal digits to a String.
+    /// Converts a byte slice containing decimal digits to a u32.
     ///
-    /// This method filters out any non-digit characters and collects only
-    /// the valid ASCII digits (0-9) into a string representation.
+    /// This method processes the byte slice, ignoring any non-digit characters,
+    /// and accumulates the value of the decimal digits into a u32.
     ///
     /// # Arguments
     /// * `s` - A byte slice potentially containing decimal digits
-    ///
     /// # Returns
-    /// A String containing only the decimal digits found in the input
+    /// A u32 representing the decimal value of the digits found in the input
     #[inline(always)]
-    fn decimal(s: &[u8]) -> String {
-        // Convert a byte slice containing ASCII digits to a String
-        // This function assumes that the input is valid ASCII digits (0-9).
-        // Using `collect` to gather the digits into a String
-        s.iter()
-            .filter(|&&c| c.is_ascii_digit())
-            .map(|&c| c as char)
-            .collect::<String>()
+    fn decimal(s: &[u8]) -> u32 {
+        s.iter().fold(0u32, |acc, &c| {
+            if c.is_ascii_digit() {
+                acc * 10 + u32::from(c - b'0')
+            } else {
+                acc // Ignore non-digit characters
+            }
+        })
     }
 
-    /// Converts a byte slice containing hexadecimal digits to a String.
+    /// Converts a hexadecimal character to its u32 value.
     ///
-    /// This method filters out any non-hexadecimal characters and collects only
-    /// the valid ASCII hexadecimal digits (0-9, A-F, a-f) into a string representation.
+    /// This method handles both uppercase and lowercase hexadecimal digits,
+    /// converting them to their corresponding u32 values. It also supports
+    /// digits '0'-'9' and letters 'A'-'F' or 'a'-'f'.
+    ///
+    /// # Arguments
+    /// * `c` - A byte representing a hexadecimal character
+    ///
+    /// # Returns
+    /// A u32 representing the value of the hexadecimal character
+    #[inline(always)]
+    fn hex_val(c: u8) -> u32 {
+        if c.is_ascii_uppercase() {
+            u32::from(c - b'A' + 10)
+        } else if c.is_ascii_lowercase() {
+            u32::from(c - b'a' + 10)
+        } else {
+            u32::from(c - b'0')
+        }
+    }
+
+    /// Converts a byte slice containing hexadecimal digits to a u32.
+    ///
+    /// This method processes the byte slice, ignoring any non-hexadecimal characters,
+    /// and accumulates the value of the hexadecimal digits into a u32.
     ///
     /// # Arguments
     /// * `s` - A byte slice potentially containing hexadecimal digits
     ///
     /// # Returns
-    /// A String containing only the hexadecimal digits found in the input
+    /// A u32 representing the hexadecimal value of the digits found in the input
     #[inline(always)]
-    fn hexadecimal(s: &[u8]) -> String {
-        // Convert a byte slice containing hexadecimal digits to a String
-        // This function assumes that the input is valid hexadecimal digits (0-9, A-F, a-f).
-        s.iter()
-            .filter(|&&c| c.is_ascii_hexdigit())
-            .map(|&c| c as char)
-            .collect::<String>()
+    fn hexadecimal(s: &[u8]) -> u32 {
+        s.iter().fold(0u32, |acc, &c| {
+            if c.is_ascii_hexdigit() {
+                acc * 16 + Self::hex_val(c)
+            } else {
+                acc // Ignore non-hexadecimal characters
+            }
+        })
     }
 
     /// Translates XML escape sequences to their UTF-8 representations.
@@ -546,7 +568,9 @@ impl Document {
     /// written UTF-8 bytes. Returns `None` if the escape sequence is invalid.
     #[inline]
     fn translate_sequence(&mut self, from: XmlIdx, to: XmlIdx) -> Option<(XmlIdx, XmlIdx)> {
+        let end = self.scan_until_char(from, SEMI_COLON)?;
         let mut from = from;
+
         let number = self.xml[from as usize] == HASH;
         if number {
             from += 1;
@@ -555,34 +579,30 @@ impl Document {
         if hex_number {
             from += 1;
         }
-        let start = from;
 
-        from = self.scan_until_char(from, SEMI_COLON)?;
-
-        let from_u8 = &self.xml[start as usize..from as usize];
-        let bytes = if number {
-            let value = if hex_number {
-                u32::from_str_radix(Self::hexadecimal(from_u8).as_str(), 16).unwrap_or(0)
-            } else {
-                Self::decimal(from_u8).parse::<u32>().unwrap_or(0)
-            };
-            if let Some(val) = char::from_u32(value) {
-                val.to_string().into_bytes()
-            } else {
-                // Invalid character
-                return None;
-            }
-        } else if let Some(entity) = ENTITIES_MAP.get(from_u8) {
-            entity.to_vec()
-        } else {
+        if from == end {
+            // No content between '&' and ';'
             return None;
+        }
+
+        let from_slice = &self.xml[from as usize..end as usize];
+
+        let bytes = if number {
+            char::from_u32(if hex_number {
+                Self::hexadecimal(from_slice)
+            } else {
+                Self::decimal(from_slice)
+            })
+            .map(|val| val.to_string().into_bytes())?
+        } else {
+            ENTITIES_MAP.get(from_slice).map(|entity| entity.to_vec())?
         };
 
         let buf = &mut self.xml[to as usize..];
         let len = bytes.len().min(buf.len());
         buf[..len].copy_from_slice(&bytes[..len]);
 
-        Some((from + 1, to + len as XmlIdx)) // pass the semicolon
+        Some((end + 1, to + len as XmlIdx)) // pass the semicolon
     }
 
     /// Processes XML content by translating escape sequences in-place.
@@ -607,7 +627,7 @@ impl Document {
 
         loop {
             let next_pos = if cfg!(feature = "parse_escapes") {
-                match self.scan_range_for_chartype(from..end, Chartype::ParsePCData as u8) {
+                match self.scan_range_for_chartype(from..end, Chartype::ParsePCData) {
                     Some(pos) => pos,
                     None => end, // No more characters of the specified type found
                 }
@@ -636,12 +656,15 @@ impl Document {
             }
 
             if cfg!(feature = "parse_escapes") && self.xml[next_pos as usize] == AMPERSAND {
-                if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
-                    from = new_from;
-                    to = new_to;
-                } else {
-                    // Invalid escape sequence, just skip the '&'
-                    from += 1;
+                match self.translate_sequence(next_pos + 1, to) {
+                    Some((new_from, new_to)) => {
+                        from = new_from;
+                        to = new_to;
+                    }
+                    None => {
+                        // Invalid escape sequence, just skip the '&'
+                        from += 1;
+                    }
                 }
             } else {
                 // This is a carriage return
@@ -683,11 +706,10 @@ impl Document {
         let mut space_added = false;
 
         loop {
-            let next_pos =
-                match self.scan_range_for_chartype(from..end, Chartype::ParseAtrNorm as u8) {
-                    Some(pos) => pos,
-                    None => end, // No more characters of the specified type found
-                };
+            let next_pos = match self.scan_range_for_chartype(from..end, Chartype::ParseAtrNorm) {
+                Some(pos) => pos,
+                None => end, // No more characters of the specified type found
+            };
 
             if next_pos >= end {
                 if from != to {
@@ -711,12 +733,15 @@ impl Document {
                 space_added = false; // Reset space added flag
             }
             if self.xml[next_pos as usize] == AMPERSAND {
-                if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
-                    from = new_from;
-                    to = new_to;
-                } else {
-                    // Invalid escape sequence, just skip the '&'
-                    from += 1;
+                match self.translate_sequence(next_pos + 1, to) {
+                    Some((new_from, new_to)) => {
+                        from = new_from;
+                        to = new_to;
+                    }
+                    None => {
+                        // Invalid escape sequence, just skip the '&'
+                        from += 1;
+                    }
                 }
                 space_added = false; // Reset space added flag
             } else {
@@ -1018,7 +1043,7 @@ impl Document {
                 State::ReadTagClose => {
                     let start = i;
 
-                    i = match self.scan_until_chartype(i, Chartype::ParseCloseTag as u8) {
+                    i = match self.scan_until_chartype(i, Chartype::ParseCloseTag) {
                         Some(new_i) => new_i,
                         None => break,
                     };
