@@ -10,15 +10,16 @@ The parsing process is limited to normal tags, attributes, and PCData content. N
 - XML content must be UTF-8.
 - Namespace prefix are removed from tag and attribute names (`namespace_removal` feature).
 - Standard XML entities (`&amp;`, `&lt;`, `&gt;`, `&apos;`, and `&quot;`), Unicode numerical character references (`&#xhhhh;` and `&#nnnn;`), and XHTML-related entities (as described [here](https://www.w3.org/TR/xhtml-modularization/dtd_module_defs.html#a_dtd_xhtml_character_entities)) are translated to their UTF-8 representation (`parse_escapes` feature).
+- Node and Attribute vector index sizes, as well as the maximum XML file size, are configurable via features. The associated features permit you to adjust the size of structs required for the DOM tree to optimize memory usage.
 
 ### Basic performance comparison
 
-For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. Used the last version of PUGIXML with the default options. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, OS, compiler versions, enabled options/features, data caching, etc.).
+For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. Used the last version of PUGIXML and this crate with the default options. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, operating system, compiler versions, enabled options/features, data caching, etc.).
 
 |                  | PUGIXML | XHTML_PARSER |
 |------------------|:-------:|:------------:|
-| Average Duration | 5856 µS |   3814 µS    |
-| Std Deviation    |  266 µS |     90 µS    |
+| Average Duration | 5856 µS |   3380 µS    |
+| Std Deviation    |  266 µS |     88 µS    |
 
 ### Licensing
 
@@ -27,17 +28,33 @@ The parser is open-source and can be freely used and modified under the terms of
 ### Cargo defined Features
 
 - `default`: Enables the default features of the parser. 
-- `namespace_removal`: Enables removal of XML namespaces from tag names during parsing. Default is **enabled**.
-- `parse_escapes`: Enables parsing of character escapes sequences (`&..;`) in PCData nodes and attribute values. Default is **enabled**.
+- `namespace_removal`: Enables removal of XML namespaces from tag names during parsing. Default is <span style="color:blue">**enabled**</span>.
+- `parse_escapes`: Enables parsing of character escapes sequences (`&..;`) in PCData nodes. Default is <span style="color:blue">**enabled**</span>.
 - `keep_ws_only_pcdata`: all PCData nodes that are composed of whitespace only will be kept. Default is **disabled**.
 - `trim_pcdata`: trim whitespaces at beginning and end of PCData nodes. Default is **disabled**.
-- `small_node_count`: Uses 16-bit indices for the nodes vector. Default is **enabled**.
+- `small_node_count`: Uses 16-bit indices for the nodes vector. Default is <span style="color:blue">**enabled**</span>.
 - `medium_node_count`: Uses 32-bit indices for the nodes vector. Default is **disabled**.
 - `large_node_count`: Uses 64-bit indices for the nodes vector. Default is **disabled**.
+- `small_attr_count`: Uses 16-bit indices for the attributes vector. Default is <span style="color:blue">**enabled**</span>.
+- `medium_attr_count`: Uses 32-bit indices for the attributes vector. Default is **disabled**.
+- `large_attr_count`: Uses 64-bit indices for the attributes vector. Default is **disabled**.
+- `small_xml_size`: Allow XML files up to 64KB in length. Default is **disabled**.
+- `medium_xml_size`: Allow XML files up to 4GB in length. Default is <span style="color:blue">**enabled**</span>.
+- `large_xml_size`: Allow XML files up to 16 HexaBytes in length. Default is **disabled**.
 - `use_cstr`: Uses an index into a null-terminated `[u8]` slice (C-style string) instead of a `Range` to represent string locations in the XML content. Default is **disabled**.
-- `all_features` to get all features enabled under a single one, but without the following: `small_node_count`, `medium_node_count`, and `large_node_count`.
+- `all_features` to get all features enabled under a single one, but without the following: `xxxx_node_count`, `xxxx_attr_count`, and `xxxx_xml_size`.
 
 ## ChangeLog
+
+### [0.2.7] - 2025-07-01
+
+- Clippy related refactoring.
+- CloseTag parsing update.
+- Methods' `#[inline]` adjustments for better performance.
+- Adjusted performance results after testing.
+- Added `small_attr_count`, `medium_attr_count`, and `large_attr_count` features to use 16, 32, or 64-bit indices for the attributes vector, respectively. `small_attr_count` is the default value.
+- Added `small_xml_size`, `medium_xml_size`, and `large_xml_size` features to accept xml file with a maximum size of 64KB (16-bit indices), 4GB (32-bit indices), or 16 HexaBytes (64-bit indices) respectively. `medium_xml_size` is the default value.
+- The Dpcument creation method now check if the received XML vector is not too large for the selected capacity of nodes, attributes and file size.
 
 ### [0.2.6] - 2025-06-30
 

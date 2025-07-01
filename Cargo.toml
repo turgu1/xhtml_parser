@@ -1,6 +1,6 @@
 [package]
 name = "xhtml_parser"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["Guy Turcotte"]
 description = "Non-validating XHTML Tree-based parser."
 readme = "README.md"
@@ -16,7 +16,13 @@ memchr = { version = "2.7.4", default-features = false }
 phf = { version = "0.12", features = ["macros"] }
 
 [features]
-default = ["namespace_removal", "parse_escapes", "small_node_count"]
+default = [
+    "namespace_removal",
+    "parse_escapes",
+    "small_node_count",
+    "small_attr_count",
+    "medium_xml_size",
+]
 all_features = [
     "namespace_removal",
     "parse_escapes",
@@ -30,7 +36,13 @@ keep_ws_only_pcdata = []
 trim_pcdata = []
 small_node_count = []
 medium_node_count = []
+large_attr_count = []
+small_attr_count = []
+medium_attr_count = []
 large_node_count = []
+small_xml_size = []
+medium_xml_size = []
+large_xml_size = []
 use_cstr = []
 
 [dev-dependencies]

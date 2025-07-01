@@ -30,8 +30,8 @@ pub enum NodeType {
 /// variants of `NodeType`:
 ///
 /// - `Root`: Displays as "Root"
-/// - `Element`: Displays as "Element(name: the_name_range, attributes: the_attributes_range)"
-/// - `Text`: Displays as "Text(text_content_range)"
+/// - `Element`: Displays as "Element(name: `the_name_range`, attributes: `the_attributes_range`)"
+/// - `Text`: Displays as "`Text(text_content_range)`"
 ///
 /// This is useful for debugging and logging purposes when working with the
 /// node tree structure.
@@ -40,9 +40,9 @@ impl Debug for NodeType {
         match self {
             NodeType::Head => write!(f, "Head"),
             NodeType::Element { name, attributes } => {
-                write!(f, "Element(name: {:?}, attributes: {:?})", name, attributes)
+                write!(f, "Element(name: {name:?}, attributes: {attributes:?})")
             }
-            NodeType::Text(text) => write!(f, "Text({:?})", text),
+            NodeType::Text(text) => write!(f, "Text({text:?})"),
         }
     }
 }

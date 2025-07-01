@@ -1,5 +1,15 @@
 ## ChangeLog
 
+### [0.2.7] - 2025-07-01
+
+- Clippy related refactoring.
+- CloseTag parsing update.
+- Methods' `#[inline]` adjustments for better performance.
+- Adjusted performance results after testing.
+- Added `small_attr_count`, `medium_attr_count`, and `large_attr_count` features to use 16, 32, or 64-bit indices for the attributes vector, respectively. `small_attr_count` is the default value.
+- Added `small_xml_size`, `medium_xml_size`, and `large_xml_size` features to accept xml file with a maximum size of 64KB (16-bit indices), 4GB (32-bit indices), or 16 HexaBytes (64-bit indices) respectively. `medium_xml_size` is the default value.
+- The Dpcument creation method now check if the received XML vector is not too large for the selected capacity of nodes, attributes and file size.
+
 ### [0.2.6] - 2025-06-30
 
 Performance comparison revisited.

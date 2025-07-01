@@ -3,7 +3,8 @@
 //! This module provides functionality to parse XML content, handling various node types and attributes.
 //! It defines the `parser()` method for processing XML data.
 
-#![allow(unused_macros)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::inline_always)]
 
 use crate::defs::{NodeIdx, ParseXmlError, XmlIdx, XmlLocation};
 use crate::document::Document;
@@ -49,34 +50,34 @@ const CARRIAGE_RETURN: u8 = b'\r';
 #[allow(dead_code)]
 #[derive(Clone, Copy)]
 
+#[rustfmt::skip]
 enum Chartype {
-    ParsePCData = 1,   // &, \r
-    ParseAtrNorm = 4,  // &, \r, \n, space, tab
-    Space = 8,         // \r, \n, space, tab
-    Symbol = 64,       // Any symbol > 127, a-z, A-Z, 0-9, _, :, -, .
-    StartSymBol = 128, // Any symbol > 127, a-z, A-Z, _, :
+    ParsePCData   =   1,  // &, \r
+    ParseAtrNorm  =   4,  // &, \r, \n, space, tab
+    Space         =   8,  // \r, \n, space, tab
+    ParseCloseTag =  16,  // \r, \n, space, tab, >
+    Symbol        =  64,  // Any symbol > 127, a-z, A-Z, 0-9, _, :, -, .
+    StartSymBol   = 128,  // Any symbol > 127, a-z, A-Z, _, :
 }
 
-//const SPACE_AND_CLOSE_SIGN: u8 = Chartype::Space as u8 | Chartype::ParseCData as u8;
-const SYMBOL: u8 = Chartype::Symbol as u8;
-const START_SYMBOL: u8 = Chartype::StartSymBol as u8;
-
+#[rustfmt::skip]
 const CHARTYPE_TABLE: [u8; 256] = [
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 0, 0, 13, 0, 0, // 0-15
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16-31
-    12, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 64, 64, 0, // 32-47
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 192, 0, 0, 0, 0, 0, // 48-63
-    0, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, // 64-79
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 0, 0, 0, 0, 192, // 80-95
-    0, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, // 96-111
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 0, 0, 0, 0, 0, // 112-127
+      0,   0,   0,   0,   0,   0,   0,   0,   0,  28,  28,   0,   0,  29,   0,   0, // 0-15
+      0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 16-31
+     28,   0,   0,   0,   0,   0,   5,   0,   0,   0,   0,   0,   0,  64,  64,   0, // 32-47
+     64,  64,  64,  64,  64,  64,  64,  64,  64,  64, 192,   0,   0,   0,  16,   0, // 48-63
+      0, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, // 64-79
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,   0,   0,   0,   0, 192, // 80-95
+      0, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, // 96-111
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,   0,   0,   0,   0,   0, // 112-127
     192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, // 128+
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
+    192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192,
 ];
 
 #[rustfmt::skip]
@@ -220,31 +221,6 @@ macro_rules! search_char {
 }
 
 impl Document {
-    /// Scans the XML buffer until a specific character is found or the end of the buffer is reached.
-    ///
-    /// This method searches for the specified character starting from the current pointer position
-    /// and returns the position of the found character.
-    /// If the character is not found, it returns the end of the XML buffer.
-    ///
-    /// # Arguments
-    /// * `p` - The current position in the XML buffer
-    /// * `target_char` - The byte value of the character to search for
-    ///
-    /// # Returns
-    /// `XmlIdx` - The updated pointer position after scanning for the character.
-    #[inline(always)]
-    fn scan_until_char_or_end(&self, p: XmlIdx, target_char: u8) -> XmlIdx {
-        if p < self.xml.len() as XmlIdx {
-            if let Some(pos) = search_char!(target_char, &self.xml[p as usize..]) {
-                p + pos as XmlIdx
-            } else {
-                self.xml.len() as XmlIdx // Move to the end if no more characters match
-            }
-        } else {
-            self.xml.len() as XmlIdx // Move to the end if pointer is out of bounds
-        }
-    }
-
     /// Skips a specific slice in the XML buffer, returning the next position after the slice.
     ///
     /// This method scans the XML buffer starting from the current pointer position `p`
@@ -265,11 +241,8 @@ impl Document {
             None
         } else {
             let max_pos: XmlIdx = (p + max).min(self.xml.len() as XmlIdx);
-            if let Some(pos) = kmp_find(slice, &self.xml[p as usize..max_pos as usize]) {
-                Some(p + pos as XmlIdx + slice.len() as XmlIdx)
-            } else {
-                None
-            }
+            kmp_find(slice, &self.xml[p as usize..max_pos as usize])
+                .map(|pos| p + pos as XmlIdx + slice.len() as XmlIdx)
         }
     }
 
@@ -287,66 +260,58 @@ impl Document {
     /// `Some(XmlIdx)` - The updated pointer position after skipping characters of the specified chartype,
     /// or `None` if the end of the XML buffer is reached.
     #[inline(always)]
-    fn skip_chartype(&self, p: XmlIdx, chartype: u8) -> Option<XmlIdx> {
+    fn skip_chartype(&self, p: XmlIdx, chartype: Chartype) -> Option<XmlIdx> {
         if p >= self.xml.len() as XmlIdx {
             None
-        } else if let Some(pos) = (self.xml[p as usize..])
-            .iter()
-            .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) == 0)
-        {
-            Some(p + pos as XmlIdx)
         } else {
-            None
+            (self.xml[p as usize..])
+                .iter()
+                .position(|&c| (CHARTYPE_TABLE[c as usize] & (chartype as u8)) == 0)
+                .map(|pos| p + pos as XmlIdx)
         }
     }
 
     /// Scans a range in the XML buffer for a specific character type and returns the position of the first occurrence.
-    ///
-    /// This method searches for the specified character type within the given range and returns the position
-    /// of the first character that matches the chartype. If no character matches, it returns the end of the range.
+    /// ///
+    /// This method searches for the first character in the specified range that matches the given chartype.
+    /// If a character matching the chartype is found, it returns the position of that character.
+    /// If no such character is found, it returns `None`.
     ///
     /// # Arguments
     /// * `range` - The range within the XML buffer to search
-    /// * `chartype` - The character type to search for, represented as a bitmask
+    /// * `chartype` - The chartype to search for, represented as a bitmask
     ///
     /// # Returns
-    /// `XmlIdx` - The position of the first character that matches the chartype,
-    /// or the end of the range if no character matches.
+    /// `Option<XmlIdx>` - The position of the first occurrence of the character matching the chartype,
+    /// or `None` if no such character is found within
     #[inline(always)]
-    fn scan_range_for_chartype_or_end(&self, range: XmlRange, chartype: u8) -> XmlIdx {
-        if let Some(pos) = (self.xml[range.start as usize..range.end as usize])
+    fn scan_range_for_chartype(&self, range: XmlRange, chartype: u8) -> Option<XmlIdx> {
+        (self.xml[range.start as usize..range.end as usize])
             .iter()
             .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) != 0)
-        {
-            range.start + pos as XmlIdx
-        } else {
-            range.end
-        }
+            .map(|pos| range.start + pos as XmlIdx)
     }
 
     /// Scans a range in the XML buffer for a specific character and returns the position of the first occurrence.
     ///
-    /// This method searches for the specified character within the given range and returns the position
-    /// of the first occurrence of the character. If the character is not found, it returns
-    /// the end of the range.
+    /// This method searches for the first occurrence of the specified character within the given range.
+    /// If the character is found, it returns the position of that character.
+    /// If the character is not found, it returns `None`.
     ///
     /// # Arguments
     /// * `range` - The range within the XML buffer to search
     /// * `target_char` - The byte value of the character to search for
     ///
     /// # Returns
-    /// `XmlIdx` - The position of the first occurrence of the character,
-    /// or the end of the range if the character is not found.
+    /// `Option<XmlIdx>` - The position of the first occurrence of the character,
+    /// or `None` if the character is not found within the specified range.
     #[inline(always)]
-    fn scan_range_for_char_or_end(&self, range: XmlRange, target_char: u8) -> XmlIdx {
-        if let Some(pos) = search_char!(
+    fn scan_range_for_char(&self, range: XmlRange, target_char: u8) -> Option<XmlIdx> {
+        search_char!(
             target_char,
             &self.xml[range.start as usize..range.end as usize]
-        ) {
-            range.start + pos as XmlIdx
-        } else {
-            range.end
-        }
+        )
+        .map(|pos| range.start + pos as XmlIdx)
     }
 
     /// Scans the XML buffer until a specific character is found.
@@ -367,38 +332,34 @@ impl Document {
     fn scan_until_char(&self, p: XmlIdx, target_char: u8) -> Option<XmlIdx> {
         if p >= self.xml.len() as XmlIdx {
             None
-        } else if let Some(pos) = search_char!(target_char, &self.xml[p as usize..]) {
-            Some(p + pos as XmlIdx)
         } else {
-            None
+            search_char!(target_char, &self.xml[p as usize..]).map(|pos| p + pos as XmlIdx)
         }
     }
 
-    /// Skips characters of a specific type in the XML buffer, returning the next position that does not match the chartype.
+    /// Scans the XML buffer until a character of a specific type is found.
     ///
-    /// This method scans the XML buffer starting from the current pointer position
-    /// and skips over characters that match the specified chartype.
-    /// If the end of the buffer is reached, it returns the length of the XML buffer.
+    /// This method searches for the first character that matches the specified chartype
+    /// starting from the current position `p` and returns the position of the found character.
+    /// If no character matching the chartype is found, it returns `None`.
     ///
     /// # Arguments
     /// * `p` - The current position in the XML buffer
-    /// * `chartype` - The chartype to skip, represented as a bitmask
+    /// * `chartype` - The chartype to search for, represented as a bitmask
     ///
     /// # Returns
-    /// `XmlIdx` - The updated pointer position after skipping characters of the specified chartype
+    /// `Option<XmlIdx>` - The position of the found character matching the chartype,
+    /// or `None` if no such character is found or if the position `p`
+    /// is beyond the end of the XML buffer.
     #[inline(always)]
-    fn skip_chartype_or_end(&self, p: XmlIdx, chartype: u8) -> XmlIdx {
-        if p < self.xml.len() as XmlIdx {
-            if let Some(pos) = (self.xml[p as usize..])
-                .iter()
-                .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) == 0)
-            {
-                p + pos as XmlIdx
-            } else {
-                self.xml.len() as XmlIdx
-            }
+    fn scan_until_chartype(&self, p: XmlIdx, chartype: u8) -> Option<XmlIdx> {
+        if p >= self.xml.len() as XmlIdx {
+            None
         } else {
-            self.xml.len() as XmlIdx
+            (self.xml[p as usize..])
+                .iter()
+                .position(|&c| (CHARTYPE_TABLE[c as usize] & chartype) != 0)
+                .map(|pos| p + pos as XmlIdx)
         }
     }
 
@@ -421,33 +382,9 @@ impl Document {
     fn scan_until_one_of_2_chars(&self, p: XmlIdx, char1: u8, char2: u8) -> Option<XmlIdx> {
         if p >= self.xml.len() as XmlIdx {
             None
-        } else if let Some(pos) = memchr2(char1, char2, &self.xml[p as usize..]) {
-            Some(p + pos as XmlIdx)
         } else {
-            None
+            memchr2(char1, char2, &self.xml[p as usize..]).map(|pos| p + pos as XmlIdx)
         }
-    }
-
-    /// Scans the XML buffer until a specific character is found or no change occurs.
-    ///
-    /// This method searches for the specified character starting from the given position
-    /// and returns the position of the found character. If the character is not found,
-    /// the original position is returned unchanged.
-    ///
-    /// # Arguments
-    /// * `p` - The current position in the XML buffer
-    /// * `target_char` - The byte value of the character to search for
-    ///
-    /// # Returns
-    /// The updated position in the XML buffer after scanning for the character.
-    #[inline(always)]
-    fn scan_until_char_or_nochange(&self, p: XmlIdx, target_char: u8) -> XmlIdx {
-        if p < self.xml.len() as XmlIdx {
-            if let Some(pos) = search_char!(target_char, &self.xml[p as usize..]) {
-                return p + pos as XmlIdx;
-            }
-        }
-        p
     }
 
     /// Displays XML content around an error position for debugging purposes.
@@ -463,12 +400,14 @@ impl Document {
     /// A formatted string showing the XML context around the error position    
     #[inline]
     fn show_xml_around_error(&self, pos: XmlIdx) -> String {
-        let start = if pos > 30 { pos - 30 } else { 0 };
+        let start = pos.saturating_sub(30);
+
         let end = if (pos + 30) < self.xml.len() as XmlIdx {
             pos + 30
         } else {
             self.xml.len() as XmlIdx
         };
+
         format!(
             "...{}[*]{}...",
             std::str::from_utf8(&self.xml[start as usize..pos as usize])
@@ -512,7 +451,7 @@ impl Document {
     /// # Returns
     /// `Ok(())` if the tags match, or a parsing error if they don't match
     /// or if the parent node is not an element
-    #[inline]
+    #[inline(always)]
     fn check_closing_tag(
         &self,
         parent_idx: NodeIdx,
@@ -530,10 +469,7 @@ impl Document {
                 let position = location.start;
 
                 return self.invalid(
-                    &format!(
-                        "Closing tag '{}' does not match opening tag '{}'",
-                        closing_tag, tag_name
-                    ),
+                    &format!("Closing tag '{closing_tag}' does not match opening tag '{tag_name}'"),
                     position,
                 );
             }
@@ -559,8 +495,8 @@ impl Document {
     ///
     /// # Returns
     /// A String containing only the decimal digits found in the input
-    #[inline]
-    fn decimal(&self, s: &[u8]) -> String {
+    #[inline(always)]
+    fn decimal(s: &[u8]) -> String {
         // Convert a byte slice containing ASCII digits to a String
         // This function assumes that the input is valid ASCII digits (0-9).
         // Using `collect` to gather the digits into a String
@@ -580,8 +516,8 @@ impl Document {
     ///
     /// # Returns
     /// A String containing only the hexadecimal digits found in the input
-    #[inline]
-    fn hexadecimal(&self, s: &[u8]) -> String {
+    #[inline(always)]
+    fn hexadecimal(s: &[u8]) -> String {
         // Convert a byte slice containing hexadecimal digits to a String
         // This function assumes that the input is valid hexadecimal digits (0-9, A-F, a-f).
         s.iter()
@@ -608,7 +544,7 @@ impl Document {
     /// `Some((next_from, next_to))` if translation succeeds, where `next_from` is
     /// the position after the semicolon and `next_to` is the position after the
     /// written UTF-8 bytes. Returns `None` if the escape sequence is invalid.
-    #[inline(always)]
+    #[inline]
     fn translate_sequence(&mut self, from: XmlIdx, to: XmlIdx) -> Option<(XmlIdx, XmlIdx)> {
         let mut from = from;
         let number = self.xml[from as usize] == HASH;
@@ -620,17 +556,15 @@ impl Document {
             from += 1;
         }
         let start = from;
-        from = self.scan_until_char_or_nochange(from, SEMI_COLON);
-        if from == start {
-            return None; // No entity found
-        }
+
+        from = self.scan_until_char(from, SEMI_COLON)?;
 
         let from_u8 = &self.xml[start as usize..from as usize];
         let bytes = if number {
             let value = if hex_number {
-                u32::from_str_radix(self.hexadecimal(from_u8).as_str(), 16).unwrap_or(0)
+                u32::from_str_radix(Self::hexadecimal(from_u8).as_str(), 16).unwrap_or(0)
             } else {
-                self.decimal(from_u8).parse::<u32>().unwrap_or(0)
+                Self::decimal(from_u8).parse::<u32>().unwrap_or(0)
             };
             if let Some(val) = char::from_u32(value) {
                 val.to_string().into_bytes()
@@ -638,13 +572,12 @@ impl Document {
                 // Invalid character
                 return None;
             }
+        } else if let Some(entity) = ENTITIES_MAP.get(from_u8) {
+            entity.to_vec()
         } else {
-            if let Some(entity) = ENTITIES_MAP.get(from_u8) {
-                entity.to_vec()
-            } else {
-                return None;
-            }
+            return None;
         };
+
         let buf = &mut self.xml[to as usize..];
         let len = bytes.len().min(buf.len());
         buf[..len].copy_from_slice(&bytes[..len]);
@@ -666,6 +599,7 @@ impl Document {
     /// `Some((start, end))` where `start` is the original start position and
     /// `end` is the new end position after sequence translation and compaction.
     /// Returns `None` if processing fails.
+    #[inline(always)]
     fn parse_pcdata(&mut self, range: &XmlRange) -> XmlRange {
         let end = range.end;
         let mut to = range.start;
@@ -673,9 +607,15 @@ impl Document {
 
         loop {
             let next_pos = if cfg!(feature = "parse_escapes") {
-                self.scan_range_for_chartype_or_end(from..end, Chartype::ParsePCData as u8)
+                match self.scan_range_for_chartype(from..end, Chartype::ParsePCData as u8) {
+                    Some(pos) => pos,
+                    None => end, // No more characters of the specified type found
+                }
             } else {
-                self.scan_range_for_char_or_end(from..end, CARRIAGE_RETURN)
+                match self.scan_range_for_char(from..end, CARRIAGE_RETURN) {
+                    Some(pos) => pos,
+                    None => end, // No more '&' found
+                }
             };
 
             if next_pos >= end {
@@ -686,32 +626,33 @@ impl Document {
                 }
                 to += end - from;
                 break; // No more '&' found
-            } else {
-                if next_pos > from {
-                    // Move the content before the '&' to the `to` position
-                    self.xml
-                        .copy_within(from as usize..next_pos as usize, to as usize);
-                    to += next_pos - from;
-                }
-                if cfg!(feature = "parse_escapes") && self.xml[next_pos as usize] == AMPERSAND {
-                    if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
-                        from = new_from;
-                        to = new_to;
-                    } else {
-                        // Invalid escape sequence, just skip the '&'
-                        from += 1;
-                    }
+            }
+
+            if next_pos > from {
+                // Move the content before the '&' to the `to` position
+                self.xml
+                    .copy_within(from as usize..next_pos as usize, to as usize);
+                to += next_pos - from;
+            }
+
+            if cfg!(feature = "parse_escapes") && self.xml[next_pos as usize] == AMPERSAND {
+                if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
+                    from = new_from;
+                    to = new_to;
                 } else {
-                    // This is a carriage return
-                    self.xml[to as usize] = NEWLINE; // Replace with a newline character
-                    to += 1; // Move the `to` position forward
-                    from = next_pos
-                        + if (next_pos + 1) < end && self.xml[(next_pos + 1) as usize] == NEWLINE {
-                            2 // Move past the newline character if present
-                        } else {
-                            1
-                        };
+                    // Invalid escape sequence, just skip the '&'
+                    from += 1;
                 }
+            } else {
+                // This is a carriage return
+                self.xml[to as usize] = NEWLINE; // Replace with a newline character
+                to += 1; // Move the `to` position forward
+                from = next_pos
+                    + if (next_pos + 1) < end && self.xml[(next_pos + 1) as usize] == NEWLINE {
+                        2 // Move past the newline character if present
+                    } else {
+                        1
+                    };
             }
         }
 
@@ -743,7 +684,10 @@ impl Document {
 
         loop {
             let next_pos =
-                self.scan_range_for_chartype_or_end(from..end, Chartype::ParseAtrNorm as u8);
+                match self.scan_range_for_chartype(from..end, Chartype::ParseAtrNorm as u8) {
+                    Some(pos) => pos,
+                    None => end, // No more characters of the specified type found
+                };
 
             if next_pos >= end {
                 if from != to {
@@ -757,33 +701,33 @@ impl Document {
                     to -= 1; // Remove the last added space
                 }
                 break; // No more '&' or whitespace found
-            } else {
-                if next_pos > from {
-                    // Move the content before the '&' or whitespace to the `to` position
-                    self.xml
-                        .copy_within(from as usize..next_pos as usize, to as usize);
-                    to += next_pos - from;
-                    space_added = false; // Reset space added flag
-                }
-                if self.xml[next_pos as usize] == AMPERSAND {
-                    if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
-                        from = new_from;
-                        to = new_to;
-                    } else {
-                        // Invalid escape sequence, just skip the '&'
-                        from += 1;
-                    }
-                    space_added = false; // Reset space added flag
+            }
+
+            if next_pos > from {
+                // Move the content before the '&' or whitespace to the `to` position
+                self.xml
+                    .copy_within(from as usize..next_pos as usize, to as usize);
+                to += next_pos - from;
+                space_added = false; // Reset space added flag
+            }
+            if self.xml[next_pos as usize] == AMPERSAND {
+                if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
+                    from = new_from;
+                    to = new_to;
                 } else {
-                    // Handle whitespace normalization
-                    if !space_added && to != range.start {
-                        // Add a space if not already added
-                        self.xml[to as usize] = SPACE;
-                        to += 1;
-                        space_added = true;
-                    }
-                    from = next_pos + 1; // Move past the whitespace
+                    // Invalid escape sequence, just skip the '&'
+                    from += 1;
                 }
+                space_added = false; // Reset space added flag
+            } else {
+                // Handle whitespace normalization
+                if !space_added && to != range.start {
+                    // Add a space if not already added
+                    self.xml[to as usize] = SPACE;
+                    to += 1;
+                    space_added = true;
+                }
+                from = next_pos + 1; // Move past the whitespace
             }
         }
 
@@ -801,8 +745,8 @@ impl Document {
     ///
     /// # Returns
     /// `true` if the byte matches the character type, `false` otherwise
-    #[inline]
-    fn is_of_type(&self, byte: u8, chartype: Chartype) -> bool {
+    #[inline(always)]
+    fn is_of_type(byte: u8, chartype: Chartype) -> bool {
         (CHARTYPE_TABLE[byte as usize] & chartype as u8) != 0
     }
 
@@ -817,10 +761,10 @@ impl Document {
     ///
     /// # Returns
     /// The new end index of the range after trimming trailing whitespace
-    #[inline]
+    #[inline(always)]
     fn trim_the_ending_whitespaces(&self, range: XmlRange) -> XmlIdx {
         let mut end = range.end;
-        while end > range.start && self.is_of_type(self.xml[(end - 1) as usize], Chartype::Space) {
+        while end > range.start && Self::is_of_type(self.xml[(end - 1) as usize], Chartype::Space) {
             end -= 1;
         }
         end
@@ -885,6 +829,7 @@ impl Document {
     /// - Invalid character sequences
     /// - Malformed attributes
     /// - Unexpected end of document
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn parse(&mut self) -> Result<(), ParseXmlError> {
         let root_idx: NodeIdx = 0;
 
@@ -893,6 +838,7 @@ impl Document {
         let mut parent_idx = root_idx;
         let mut state = State::Start;
         let mut i: XmlIdx = 0 as XmlIdx;
+
         let size = self.xml.len() as XmlIdx;
 
         loop {
@@ -920,7 +866,7 @@ impl Document {
                             if i < size {
                                 if self.xml[i as usize..].starts_with(b"--") {
                                     i += 2;
-                                    i = match self.skip_after_slice(i, 5000, &b"-->".as_slice()) {
+                                    i = match self.skip_after_slice(i, 5000, b"-->".as_slice()) {
                                         Some(new_i) => new_i,
                                         None => break,
                                     };
@@ -941,7 +887,7 @@ impl Document {
                                             None => break,
                                         };
                                         i += 1; // skip ']'
-                                        i = match self.skip_chartype(i, Chartype::Space as u8) {
+                                        i = match self.skip_chartype(i, Chartype::Space) {
                                             Some(new_i) => new_i,
                                             None => break,
                                         };
@@ -958,7 +904,7 @@ impl Document {
                                     i += 1; // skip '>'
                                 } else if self.xml[i as usize..].starts_with(b"[CDATA[") {
                                     i += 7;
-                                    i = match self.skip_after_slice(i, 5000, &b"]]>".as_slice()) {
+                                    i = match self.skip_after_slice(i, 5000, b"]]>".as_slice()) {
                                         Some(new_i) => new_i,
                                         None => break,
                                     };
@@ -974,7 +920,7 @@ impl Document {
                         }
                         QUESTION_MARK => {
                             i += 1;
-                            i = match self.skip_after_slice(i, 500, &b"?>".as_slice()) {
+                            i = match self.skip_after_slice(i, 500, b"?>".as_slice()) {
                                 Some(new_i) => new_i,
                                 None => break,
                             };
@@ -989,14 +935,16 @@ impl Document {
                 }
                 State::ReadTagOpen => {
                     let start = i;
-                    if CHARTYPE_TABLE[self.xml[i as usize] as usize] & START_SYMBOL == 0 {
+                    if CHARTYPE_TABLE[self.xml[i as usize] as usize] & (Chartype::StartSymBol as u8)
+                        == 0
+                    {
                         return self.invalid(
                             "Tag name must start with a letter or underscore",
                             i as XmlIdx,
                         );
                     }
                     i += 1; // skip first char of tag name
-                    i = match self.skip_chartype(i, SYMBOL) {
+                    i = match self.skip_chartype(i, Chartype::Symbol) {
                         Some(new_i) => new_i,
                         None => break,
                     };
@@ -1069,12 +1017,15 @@ impl Document {
                 }
                 State::ReadTagClose => {
                     let start = i;
-                    i = match self.skip_chartype(i, Chartype::Space as u8) {
+
+                    i = match self.scan_until_chartype(i, Chartype::ParseCloseTag as u8) {
                         Some(new_i) => new_i,
                         None => break,
                     };
 
-                    i = self.scan_until_char_or_end(i, GREATER_THAN);
+                    if i == start {
+                        return self.invalid("Expected tag name after '</'", i);
+                    }
 
                     let name_range = if cfg!(feature = "namespace_removal") {
                         // Remove namespace prefix from attribute name
@@ -1083,6 +1034,8 @@ impl Document {
                         // If namespace removal is not enabled, use the original range
                         start..i
                     };
+
+                    let is_greater_than = self.xml[i as usize] == GREATER_THAN;
 
                     #[cfg(feature = "use_cstr")]
                     {
@@ -1098,6 +1051,14 @@ impl Document {
                     } else {
                         self.get_parent_idx(parent_idx)?
                     };
+
+                    if !is_greater_than {
+                        i = match self.scan_until_char(i + 1, GREATER_THAN) {
+                            Some(new_i) => new_i,
+                            None => break,
+                        };
+                    }
+
                     i += 1;
                     if i >= size || parent_idx == 0 {
                         State::End
@@ -1106,7 +1067,7 @@ impl Document {
                     }
                 }
                 State::ReadAttribute => {
-                    i = match self.skip_chartype(i, Chartype::Space as u8) {
+                    i = match self.skip_chartype(i, Chartype::Space) {
                         Some(new_i) => new_i,
                         None => break,
                     };
@@ -1141,14 +1102,17 @@ impl Document {
                         }
                         _ => {
                             let start = i;
-                            if CHARTYPE_TABLE[self.xml[i as usize] as usize] & START_SYMBOL == 0 {
+                            if CHARTYPE_TABLE[self.xml[i as usize] as usize]
+                                & (Chartype::StartSymBol as u8)
+                                == 0
+                            {
                                 return self.invalid(
                                     "Attribute name must start with a letter or underscore",
                                     i,
                                 );
                             }
                             i += 1;
-                            i = match self.skip_chartype(i, SYMBOL) {
+                            i = match self.skip_chartype(i, Chartype::Symbol) {
                                 Some(new_i) => new_i,
                                 None => break,
                             };
@@ -1204,54 +1168,62 @@ impl Document {
                 }
                 State::ReadPCData => {
                     let space_start = i; // in case we must keep whitespaces
-                    i = self.skip_chartype_or_end(i, Chartype::Space as u8);
-                    if i >= size {
-                        State::End
-                    } else {
-                        let mut start = i;
-                        i = match self.scan_until_char(i, LESS_THAN) {
-                            Some(new_i) => new_i,
-                            None => break,
-                        };
-
-                        if i > start {
-                            let mut the_end = i;
-
-                            if cfg!(feature = "trim_pcdata") {
-                                the_end = self.trim_the_ending_whitespaces(start..the_end);
+                    match self.skip_chartype(i, Chartype::Space) {
+                        Some(new_i) => {
+                            i = new_i;
+                            if i >= size {
+                                State::End
                             } else {
-                                start = space_start; // Reset start to space_start if not trimming
+                                let mut start = i;
+                                i = match self.scan_until_char(i, LESS_THAN) {
+                                    Some(new_i) => new_i,
+                                    None => break,
+                                };
+
+                                if i > start {
+                                    let mut the_end = i;
+
+                                    if cfg!(feature = "trim_pcdata") {
+                                        the_end = self.trim_the_ending_whitespaces(start..the_end);
+                                    } else {
+                                        start = space_start; // Reset start to space_start if not trimming
+                                    }
+
+                                    let text_range = self.parse_pcdata(&(start..the_end));
+
+                                    #[cfg(feature = "use_cstr")]
+                                    {
+                                        self.xml[text_range.end as usize] = 0; // Null-terminate the string
+                                        self.add_node(
+                                            parent_idx,
+                                            NodeType::Text(text_range.start),
+                                        )?;
+                                    }
+
+                                    #[cfg(not(feature = "use_cstr"))]
+                                    self.add_node(parent_idx, NodeType::Text(text_range))?;
+                                } else if i > space_start
+                                    && cfg!(feature = "keep_ws_only_pcdata")
+                                    && parent_idx != 0
+                                {
+                                    #[cfg(feature = "use_cstr")]
+                                    {
+                                        self.xml[i as usize] = 0; // Null-terminate the string
+                                        self.add_node(parent_idx, NodeType::Text(space_start))?;
+                                    }
+
+                                    #[cfg(not(feature = "use_cstr"))]
+                                    self.add_node(parent_idx, NodeType::Text(space_start..i))?;
+                                }
+
+                                i += 1; // Reset i to the position after the '<'
+                                if i >= size {
+                                    break;
+                                }
+                                State::ReadStartOfTag
                             }
-
-                            let text_range = self.parse_pcdata(&(start..the_end));
-
-                            #[cfg(feature = "use_cstr")]
-                            {
-                                self.xml[text_range.end as usize] = 0; // Null-terminate the string
-                                self.add_node(parent_idx, NodeType::Text(text_range.start))?;
-                            }
-
-                            #[cfg(not(feature = "use_cstr"))]
-                            self.add_node(parent_idx, NodeType::Text(text_range))?;
-                        } else if i > space_start
-                            && cfg!(feature = "keep_ws_only_pcdata")
-                            && parent_idx != 0
-                        {
-                            #[cfg(feature = "use_cstr")]
-                            {
-                                self.xml[i as usize] = 0; // Null-terminate the string
-                                self.add_node(parent_idx, NodeType::Text(space_start))?;
-                            }
-
-                            #[cfg(not(feature = "use_cstr"))]
-                            self.add_node(parent_idx, NodeType::Text(space_start..i))?;
                         }
-
-                        i += 1; // Reset i to the position after the '<'
-                        if i >= size {
-                            break;
-                        }
-                        State::ReadStartOfTag
+                        None => State::End,
                     }
                 }
                 State::End => {

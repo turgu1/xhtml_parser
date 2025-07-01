@@ -13,6 +13,7 @@ use crate::defs::{NodeIdx, XmlIdx};
 use crate::node_type::NodeType;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[must_use]
 pub struct NodeInfo {
     //node_idx: NodeIdx,   // Could never be 0, as 0 is reserved for None
     pub(crate) parent_idx: NodeIdx, // Parent node index, 0 for root
@@ -22,7 +23,7 @@ pub struct NodeInfo {
     node_type: NodeType,
 }
 
-impl<'xml> NodeInfo {
+impl NodeInfo {
     /// Creates a new `NodeInfo` instance.
     ///
     /// # Arguments
@@ -43,12 +44,14 @@ impl<'xml> NodeInfo {
 
     /// Returns `true` if this node is an element node.
     #[inline]
+    #[must_use]
     pub fn is_element(&self) -> bool {
         matches!(self.node_type, NodeType::Element { .. })
     }
 
     /// Returns the index of the parent node, or `None` if this is the head node.
     #[inline]
+    #[must_use]
     pub fn parent_idx(&self) -> Option<NodeIdx> {
         if self.parent_idx == 0 {
             None // Root node has no parent
@@ -59,18 +62,21 @@ impl<'xml> NodeInfo {
 
     /// Returns the index of the previous sibling of this node.
     #[inline]
+    #[must_use]
     pub fn prev_sibling_idx(&self) -> NodeIdx {
         self.prev_sibling
     }
 
     /// Returns the index of the next sibling of this node.
     #[inline]
+    #[must_use]
     pub fn next_sibling_idx(&self) -> NodeIdx {
         self.next_sibling
     }
 
     /// Returns the index of the first child of this node.
     #[inline]
+    #[must_use]
     pub fn first_child_idx(&self) -> NodeIdx {
         self.first_child
     }
@@ -81,6 +87,7 @@ impl<'xml> NodeInfo {
     /// For Text nodes, this is the start position of the text content.
     /// For the head node, this is always `0`.
     #[inline]
+    #[must_use]
     pub fn position(&self) -> XmlIdx {
         #[cfg(feature = "use_cstr")]
         {
@@ -101,6 +108,7 @@ impl<'xml> NodeInfo {
 
     /// Returns the type of this node.
     #[inline]
+    #[must_use]
     pub fn node_type(&self) -> &NodeType {
         &self.node_type
     }

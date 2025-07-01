@@ -2,11 +2,11 @@
 //!
 //! It implements a simple XML parser that reads XML content, identifies tags, attributes, and text content,
 //! and constructs a document structure from the parsed data. The parser handles various XML constructs,
-//! including elements, attributes, text nodes (PCData).
+//! including elements, attributes, text nodes (`PCData`).
 //!
 //! Loosely based on the PUGIXML parsing method and structure that is described
 //! [here](https://aosabook.org/en/posa/parsing-xml-at-the-speed-of-light.html), it is an in-place parser:
-//! modified to expand entities to their UTF-8 representation (in attribute values and PCData). Position index of
+//! modified to expand entities to their UTF-8 representation (in attribute values and `PCData`). Position index of
 //! elements is preserved in the vector. Tree nodes are kept to their minimum size for low-memory-constrained
 //! environments. A single pre-allocated vector contains all the nodes of the tree.
 //!
@@ -18,35 +18,53 @@
 //! The code is organized into modules, with a focus on clarity and maintainability.
 //! It is capable of handling a wide range of XML/XHTML documents, including those with namespaces and complex structures.
 //!
+//! Node and Attribute vector index sizes, as well as the maximum XML file size, are configurable via features. The associated features permit you to adjust the size of structs required for the DOM tree to optimize memory usage.
+//!
 //! For vaious examples of usage, please refer to the documentation and tests provided in the repository.
 //!
 //! ## Cargo defined Features
 //!
 //! - `default`: Enables the default features of the parser.
-//! - `namespace_removal`: Enables removal of XML namespaces from tag names during parsing. Default is **enabled**.
-//! - `parse_escapes`: Enables parsing of character escapes sequences (`&..;`) in PCData nodes and attribute values. Default is **enabled**.
+//! - `namespace_removal`: Enables removal of XML namespaces from tag names during parsing. Default is <span style="color:blue">**enabled**</span>.
+//! - `parse_escapes`: Enables parsing of character escapes sequences (`&..;`) in PCData nodes. Default is <span style="color:blue">**enabled**</span>.
 //! - `keep_ws_only_pcdata`: all PCData nodes that are composed of whitespace only will be kept. Default is **disabled**.
 //! - `trim_pcdata`: trim whitespaces at beginning and end of PCData nodes. Default is **disabled**.
-//! - `small_node_count`: Uses 16-bit indices for the nodes vector. Default is **enabled**.
+//! - `small_node_count`: Uses 16-bit indices for the nodes vector. Default is <span style="color:blue">**enabled**</span>.
 //! - `medium_node_count`: Uses 32-bit indices for the nodes vector. Default is **disabled**.
 //! - `large_node_count`: Uses 64-bit indices for the nodes vector. Default is **disabled**.
+//! - `small_attr_count`: Uses 16-bit indices for the attributes vector. Default is <span style="color:blue">**enabled**</span>.
+//! - `medium_attr_count`: Uses 32-bit indices for the attributes vector. Default is **disabled**.
+//! - `large_attr_count`: Uses 64-bit indices for the attributes vector. Default is **disabled**.
+//! - `small_xml_size`: Allow XML files up to 64KB in length. Default is **disabled**.
+//! - `medium_xml_size`: Allow XML files up to 4GB in length. Default is <span style="color:blue">**enabled**</span>.
+//! - `large_xml_size`: Allow XML files up to 16 HexaBytes in length. Default is **disabled**.
 //! - `use_cstr`: Uses an index into a null-terminated `[u8]` slice (C-style string) instead of a `Range` to represent string locations in the XML content. Default is **disabled**.
-//! - `all_features` to get all features enabled under a single one, but without the following: `small_node_count`, `medium_node_count`, and `large_node_count`.
+//! - `all_features` to get all features enabled under a single one, but without the following: `xxxx_node_count`, `xxxx_attr_count`, and `xxxx_xml_size`.
 //!
 //! ## Basic performance comparison
 //!
-//! For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. Used the last version of PUGIXML with the default options. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, OS, compiler versions, enabled options/features, data caching, etc.).
+//! For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. Used the last version of PUGIXML and this crate with the default options. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, operating system, compiler versions, enabled options/features, data caching, etc.).
 //!
 //! |                  | PUGIXML | XHTML_PARSER |
 //! |------------------|:-------:|:------------:|
-//! | Average Duration | 5856 µS |   3814 µS    |
-//! | Std Deviation    |  266 µS |     90 µS    |
+//! | Average Duration | 5856 µS |   3380 µS    |
+//! | Std Deviation    |  266 µS |     88 µS    |
 //!
 //! ## Licensing
 //!
 //! The parser is open-source and can be freely used and modified under the terms of the MIT license.
 //!
-//! ## ChangeLog
+//! ## `ChangeLog`
+//!
+//! ### [0.2.7] - 2025-07-01
+//!
+//! - Clippy related refactoring.
+//! - CloseTag parsing update.
+//! - Methods' `#[inline]` adjustments for better performance.
+//! - Adjusted performance results after testing.
+//! - Added `small_attr_count`, `medium_attr_count`, and `large_attr_count` features to use 16, 32, or 64-bit indices for the attributes vector, respectively. `small_attr_count` is the default value.
+//! - Added `small_xml_size`, `medium_xml_size`, and `large_xml_size` features to accept xml file with a maximum size of 64KB (16-bit indices), 4GB (32-bit indices), or 16 HexaBytes (64-bit indices) respectively. `medium_xml_size` is the default value.
+//! - The Dpcument creation method now check if the received XML vector is not too large for the selected capacity of nodes, attributes and file size.
 //!
 //! ### [0.2.6] - 2025-06-30
 //!
@@ -73,7 +91,7 @@
 //! ### [0.2.3] - 2025-06-23
 //!
 //! - Attribute value normalization: Whitespace (space, tab, carriage-return, line-feed) at the beginning and end of attribute values are removed. All other whitespace character sequences are replaced with a single space. All known entities (`&..;`) are translated.
-//! - In PCData, carriage-return characters alone are replaced with a line-feed character; carriage-return are removed when followed by a line-feed.
+//! - In `PCData`, carriage-return characters alone are replaced with a line-feed character; carriage-return are removed when followed by a line-feed.
 //! - All parser macros are replaced with their equivalent inline method. This to simplify debugging and for better readability.
 //! - Correction: with the `keep_ws_only_pcdata` feature enabled, whitespace only nodes are created after a first element tag is encountered.
 //! - The parsing process is now ending once the first element is completely parsed (its ending tag has been encountered). All remaining content in the XML file is ignored.
@@ -95,9 +113,9 @@
 //!
 //! ### [0.2.0] - 2025-06-15
 //!
-//! - Going to version [0.2.0] is required as the way that space characters present at the beginning and end of PCData nodes are processed is different, whether or not the following added features are enabled or disabled.
-//! - Added `keep_ws_only_pcdata`: all PCData nodes that are composed of whitespace only will be kept. Default is **disabled**.
-//! - Added `trim_pcdata`: trim whitespaces at beginning and end of PCData nodes. Default is **disabled**.
+//! - Going to version [0.2.0] is required as the way that space characters present at the beginning and end of `PCData` nodes are processed is different, whether or not the following added features are enabled or disabled.
+//! - Added `keep_ws_only_pcdata`: all `PCData` nodes that are composed of whitespace only will be kept. Default is **disabled**.
+//! - Added `trim_pcdata`: trim whitespaces at beginning and end of `PCData` nodes. Default is **disabled**.
 //! - Corrected the description of the `parse_escapes` feature to add `attribute values` that are parsed for escapes sequences when that feature is enabled.
 //! - Added test case for each feature. Requires to adjust selected feature before launching the individual tests.
 //!

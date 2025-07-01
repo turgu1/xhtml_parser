@@ -21,14 +21,14 @@ pub struct AttributeInfo {
 }
 
 impl AttributeInfo {
-    /// Creates a new AttributeInfo with the specified name and value ranges.
+    /// Creates a new `AttributeInfo` with the specified name and value ranges.
     ///
     /// # Arguments
     /// * `name` - The range in the document containing the attribute name
     /// * `value` - The range in the document containing the attribute value
     ///
     /// # Returns
-    /// A new AttributeInfo instance
+    /// A new `AttributeInfo` instance
     pub(crate) fn new(name: XmlLocation, value: XmlLocation) -> Self {
         AttributeInfo { name, value }
     }
@@ -49,12 +49,14 @@ impl<'xml> Attribute<'xml> {
     /// # Returns
     /// A string slice containing the attribute name
     #[inline]
+    #[must_use]
     pub fn name(&self) -> &str {
         self.doc.get_str_from_location(self.data.name.clone())
     }
 
     /// Returns true if the attribute's name matches the given string.
     #[inline]
+    #[must_use]
     pub fn is(&self, name: &str) -> bool {
         self.name() == name
     }
@@ -64,6 +66,7 @@ impl<'xml> Attribute<'xml> {
     /// # Returns  
     /// A string slice containing the attribute value
     #[inline]
+    #[must_use]
     pub fn value(&self) -> &'xml str {
         self.doc.get_str_from_location(self.data.value.clone())
     }
@@ -100,6 +103,7 @@ impl<'a> Attributes<'a> {
     /// # Returns
     /// An Attributes iterator that will yield all attributes of the node
     #[inline]
+    #[must_use]
     pub fn new(node: &Node<'a>) -> Attributes<'a> {
         let attrs = match node.node_info.node_type() {
             NodeType::Element { ref attributes, .. } => {
@@ -149,15 +153,15 @@ impl<'a> Iterator for Attributes<'a> {
     /// Returns bounds on the remaining length of the iterator.
     ///
     /// # Returns
-    /// A tuple of (lower_bound, upper_bound) where upper_bound is Some(exact_size)
+    /// A tuple of (`lower_bound`, `upper_bound`) where `upper_bound` is `Some(exact_size)`
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.attrs.size_hint()
     }
 }
 
-/// DoubleEndedIterator implementation allowing reverse iteration.
-impl<'a> DoubleEndedIterator for Attributes<'a> {
+/// `DoubleEndedIterator` implementation allowing reverse iteration.
+impl DoubleEndedIterator for Attributes<'_> {
     /// Returns the next attribute from the end of the iteration.
     ///
     /// # Returns
@@ -171,8 +175,8 @@ impl<'a> DoubleEndedIterator for Attributes<'a> {
     }
 }
 
-/// ExactSizeIterator implementation indicating the iterator knows its exact length.
-impl<'a> ExactSizeIterator for Attributes<'a> {
+/// `ExactSizeIterator` implementation indicating the iterator knows its exact length.
+impl ExactSizeIterator for Attributes<'_> {
     // #[inline]
     // fn len(&self) -> usize {
     //     self.attrs.len()

@@ -2,22 +2,18 @@
 //!
 //!
 
-#![allow(unused, dead_code)]
+#![allow(clippy::cast_possible_truncation)]
 
 use log::{debug, warn};
 
-use core::ops::Range;
 use memchr::memchr_iter;
-use std::fmt::{self, Debug};
+use std::fmt::{self};
 
-use crate::attribute::{Attribute, AttributeInfo, Attributes};
-use crate::defs::{
-    AttrIdx, AttributeRange, NodeIdx, NodeRange, ParseXmlError, XmlIdx, XmlLocation,
-};
+use crate::attribute::AttributeInfo;
+use crate::defs::{AttrIdx, NodeIdx, ParseXmlError, XmlIdx, XmlLocation};
 use crate::node::Node;
 use crate::node_info::NodeInfo;
 use crate::node_type::NodeType;
-use crate::parser;
 
 /// Represents a parsed XML document.
 ///
@@ -27,6 +23,7 @@ use crate::parser;
 /// get nodes by index, add new nodes and attributes, and access the XML content.
 
 #[derive(PartialEq, Eq)]
+#[must_use]
 pub struct Document {
     pub nodes: Vec<NodeInfo>,
     pub attributes: Vec<AttributeInfo>,
@@ -42,6 +39,11 @@ impl Document {
     /// # Returns
     /// - `Ok(Document)`: If the XML content is successfully parsed and a document is created.
     /// - `Err(ParseXmlError)`: If there is an error during parsing, such as invalid XML or insufficient memory.
+    ///
+    /// # Errors
+    /// - `ParseXmlError::InvalidXml`: If the XML content is not well-formed or contains errors.
+    /// - `ParseXmlError::NoMoreSpace`: If there is not enough space to add new nodes or attributes.
+    /// - `ParseXmlError::NotEnoughMemory`: If there is not enough memory to allocate the document's nodes or attributes.
     ///
     /// # Example
     /// ```
@@ -73,8 +75,26 @@ impl Document {
         let attr_count = memchr_iter(b'=', xml.as_slice()).count();
         node_count += (node_count / 10) + 1; // Add 10% buffer for nodes
 
-        debug!("Estimated node count: {}", node_count);
-        debug!("Estimated attribute count: {}", attr_count);
+        debug!("Estimated node count: {node_count}");
+        debug!("Estimated attribute count: {attr_count}");
+
+        if node_count > NodeIdx::MAX as usize {
+            return Err(ParseXmlError::InvalidXml(
+                "XML document has too many estimated nodes!".to_string(),
+            ));
+        }
+
+        if attr_count > AttrIdx::MAX as usize {
+            return Err(ParseXmlError::InvalidXml(
+                "XML document has too many estimated attributes!".to_string(),
+            ));
+        }
+
+        if xml.len() > XmlIdx::MAX as usize {
+            return Err(ParseXmlError::InvalidXml(
+                "XML document is too large!".to_string(),
+            ));
+        }
 
         let mut doc = Document {
             nodes: Vec::with_capacity(node_count + 1), // +1 for root node
@@ -113,6 +133,8 @@ impl Document {
     }
 
     /// Returns the root node of the document.
+    #[inline]
+    #[must_use]
     pub fn root(&self) -> Option<Node<'_>> {
         if self.nodes.len() > 1 {
             Some(Node::new(1, &self.nodes[1], self))
@@ -126,6 +148,8 @@ impl Document {
     /// # Returns
     /// - `true`: If the document contains only the head node (no other nodes).
     /// - `false`: If the document contains nodes other than the head node.
+    #[inline]
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.nodes.len() <= 1 // Only the head node exists
     }
@@ -135,6 +159,8 @@ impl Document {
     /// # Returns
     /// - `NodeIdx`: The index of the last node in the document.
     /// - `0`: If the document is empty (no nodes).
+    #[inline]
+    #[must_use]
     pub fn last_node_idx(&self) -> NodeIdx {
         if self.is_empty() {
             0 // No nodes, return 0
@@ -151,17 +177,22 @@ impl Document {
     /// # Returns
     /// - `Ok(Node)`: The node at the specified index.
     /// - `Err(ParseXmlError)`: If the node index is invalid or out of bounds.
+    ///
+    /// # Errors
+    /// - `ParseXmlError::InvalidXml`: If the node index is invalid or out of bounds.
+    #[inline]
     pub fn get_node(&self, node_idx: NodeIdx) -> Result<Node<'_>, ParseXmlError> {
         if node_idx as usize >= self.nodes.len() {
             return Err(ParseXmlError::InvalidXml(format!(
-                "Invalid node index: {}",
-                node_idx
+                "Invalid node index: {node_idx}"
             )));
         }
         Ok(Node::new(node_idx, &self.nodes[node_idx as usize], self))
     }
 
     /// Returns the XML content of the document as a byte vector.
+    #[inline]
+    #[must_use]
     pub fn get_xml_content(&mut self) -> &Vec<u8> {
         &self.xml
     }
@@ -208,18 +239,17 @@ impl Document {
     /// - `ParseXmlError::InvalidXml`: If the node index is invalid or if the node has no parent (e.g., root node).
     pub fn get_parent_idx(&self, node_idx: NodeIdx) -> Result<NodeIdx, ParseXmlError> {
         if (node_idx == 0) || (node_idx as usize >= self.nodes.len()) {
-            return Err(ParseXmlError::InvalidXml(format!(
-                "Invalid node index: {}",
-                node_idx
-            )));
-        }
-
-        if node_idx > 1 {
-            Ok(self.nodes[node_idx as usize].parent_idx().unwrap())
+            Err(ParseXmlError::InvalidXml(format!(
+                "Invalid node index: {node_idx}"
+            )))
+        } else if node_idx > 1 {
+            self.nodes[node_idx as usize].parent_idx().ok_or_else(|| {
+                ParseXmlError::InvalidXml(format!("Node index {node_idx} has no parent"))
+            })
         } else {
-            return Err(ParseXmlError::InvalidXml(
+            Err(ParseXmlError::InvalidXml(
                 "Root node has no parent".to_string(),
-            ));
+            ))
         }
     }
 
@@ -241,7 +271,7 @@ impl Document {
     ) -> Result<NodeIdx, ParseXmlError> {
         let node_idx = self.nodes.len() as NodeIdx;
 
-        if node_idx >= NodeIdx::MAX {
+        if node_idx == NodeIdx::MAX {
             return Err(ParseXmlError::NoMoreSpace);
         }
 
@@ -284,22 +314,24 @@ impl Document {
         let attribute_idx = self.attributes.len() as AttrIdx;
         self.attributes.push(AttributeInfo::new(name, value));
         let node_info = &mut self.nodes[node_idx as usize];
+
         if !node_info.is_element() {
             return Err(ParseXmlError::InternalError);
-        } else {
-            let mut attributes_range = match &node_info.node_type() {
-                NodeType::Element { attributes, .. } => attributes.clone(),
-                _ => return Err(ParseXmlError::InternalError),
-            };
-            attributes_range.end += 1; // Extend the range to include the new attribute
-            node_info.set_node_type(NodeType::Element {
-                name: match &node_info.node_type() {
-                    NodeType::Element { name, .. } => name.clone(),
-                    _ => return Err(ParseXmlError::InternalError),
-                },
-                attributes: attributes_range,
-            });
         }
+
+        let mut attributes_range = match &node_info.node_type() {
+            NodeType::Element { attributes, .. } => attributes.clone(),
+            _ => return Err(ParseXmlError::InternalError),
+        };
+        attributes_range.end += 1; // Extend the range to include the new attribute
+        node_info.set_node_type(NodeType::Element {
+            name: match &node_info.node_type() {
+                NodeType::Element { name, .. } => name.clone(),
+                _ => return Err(ParseXmlError::InternalError),
+            },
+            attributes: attributes_range,
+        });
+
         Ok(attribute_idx)
     }
 
@@ -308,7 +340,9 @@ impl Document {
     /// - `range`: A reference to an `XmlLocation` that specifies the start and end indices of the desired substring.
     /// # Returns
     /// - `&str`: A string slice containing the XML content from the specified range.
-    pub fn get_str_from_location<'xml>(&'xml self, location: XmlLocation) -> &'xml str {
+    #[inline]
+    #[must_use]
+    pub fn get_str_from_location(&self, location: XmlLocation) -> &str {
         #[cfg(not(feature = "use_cstr"))]
         {
             let xml_content = &self.xml[location.start as usize..location.end as usize];
@@ -340,6 +374,7 @@ impl Document {
     ///
     /// assert_eq!(all_nodes.len(), 4); // root, child, Text, totototo
     #[inline]
+    #[must_use]
     pub fn all_nodes(&self) -> Nodes<'_> {
         Nodes::new(self)
     }
@@ -370,6 +405,7 @@ impl Document {
     /// assert!(descendants[2].is("totototo"));
     /// ```
     #[inline]
+    #[must_use]
     pub fn descendants(&self, node_idx: NodeIdx) -> Nodes<'_> {
         Nodes::descendants(self, node_idx)
     }
@@ -405,6 +441,7 @@ impl Document {
     /// # Errors
     /// - If the node index is invalid or out of bounds, it returns `0`.
     /// - If the node index is `1` and there are no descendants, it returns `0`.
+    #[must_use]
     pub fn last_descendant(&self, node_idx: NodeIdx) -> NodeIdx {
         if node_idx == 0
             || node_idx as usize >= self.nodes.len()
@@ -431,6 +468,8 @@ impl Document {
     }
 
     /// Returns the next sequential node after the node index parameter.
+    #[inline]
+    #[must_use]
     pub fn next_seq_node(&self, current: NodeIdx) -> Option<Node<'_>> {
         let next = current + 1;
         if next < self.nodes.len() as NodeIdx {
@@ -441,6 +480,8 @@ impl Document {
     }
 
     /// Returns the previous sequential node before the node index parameter.
+    #[inline]
+    #[must_use]
     pub fn previous_seq_node(&self, current: NodeIdx) -> Option<Node<'_>> {
         let previous = current - 1;
         if previous > 0 {
@@ -451,7 +492,7 @@ impl Document {
     }
 }
 
-impl<'input> fmt::Debug for Document {
+impl fmt::Debug for Document {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         if let Some(root) = self.root() {
             // write!(f, "Document [{}]", root.tag_name())?;
@@ -493,7 +534,7 @@ impl<'input> fmt::Debug for Document {
             }
 
             fn print_node(
-                node: Node,
+                node: &Node,
                 indent: usize,
                 f: &mut fmt::Formatter,
             ) -> Result<(), fmt::Error> {
@@ -523,19 +564,19 @@ impl<'input> fmt::Debug for Document {
             }
 
             fn print_children(
-                parent: Node,
+                parent: &Node,
                 indent: usize,
                 f: &mut fmt::Formatter,
             ) -> Result<(), fmt::Error> {
                 for child in parent.children() {
-                    print_node(child, indent, f)?;
+                    print_node(&child, indent, f)?;
                 }
 
                 Ok(())
             }
 
             writeln!(f, "Document [")?;
-            print_node(root, 1, f)?;
+            print_node(&root, 1, f)?;
             writeln!(f, "]")?;
 
             Ok(())
@@ -587,6 +628,8 @@ impl<'a> Nodes<'a> {
     ///
     /// # Returns
     /// - `Nodes`: An iterator that yields `Node` instances representing the nodes in the document.
+    #[inline]
+    #[must_use]
     pub fn new(document: &'a Document) -> Self {
         let last_node_idx = document.last_node_idx();
         if last_node_idx == 0 {
@@ -612,6 +655,8 @@ impl<'a> Nodes<'a> {
     ///
     /// # Returns
     /// - `Nodes`: An iterator that yields `Node` instances representing the descendants of the specified node.
+    #[inline]
+    #[must_use]
     pub fn descendants(document: &'a Document, node_idx: NodeIdx) -> Self {
         let last_node_idx = document.last_descendant(node_idx);
         if node_idx == 0 || node_idx as usize >= document.nodes.len() || last_node_idx == 0 {
@@ -654,7 +699,7 @@ impl<'a> Iterator for Nodes<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Nodes<'a> {
+impl DoubleEndedIterator for Nodes<'_> {
     /// Returns the previous node in the sequence.
     ///
     /// This method retrieves the previous node in the sequence of nodes in the document.
@@ -683,7 +728,7 @@ mod tests {
     #[test]
     fn test_document_creation() {
         let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
-        let mut document = Document::new(xml_data).unwrap();
+        let document = Document::new(xml_data).unwrap();
 
         println!("Document created: {:#?}", document);
     }

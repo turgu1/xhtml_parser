@@ -45,6 +45,7 @@ use crate::node_type::NodeType;
 ///
 /// `Node` contains metadata about the node, such as its index, type, and position in the document.
 /// It provides methods to access the node's tag name, text content, attributes, and navigation through the document tree.
+#[must_use]
 #[derive(Debug, Clone)]
 pub struct Node<'xml> {
     pub idx: NodeIdx,
@@ -59,6 +60,7 @@ impl<'xml> Node<'xml> {
     /// - `idx`: The index of the node in the document.
     /// - `node_info`: A reference to the `NodeInfo` containing metadata about the node.
     /// - `doc`: A reference to the `Document` containing the XML data.
+    #[inline]
     pub(crate) fn new(idx: NodeIdx, node_info: &'xml NodeInfo, doc: &'xml Document) -> Self {
         Node {
             idx,
@@ -68,6 +70,8 @@ impl<'xml> Node<'xml> {
     }
 
     /// Returns the index of the node in the document.
+    #[inline]
+    #[must_use]
     pub fn idx(&self) -> NodeIdx {
         self.idx
     }
@@ -86,6 +90,8 @@ impl<'xml> Node<'xml> {
     ///
     /// assert_eq!(tag_name, "root");
     /// ```
+    #[inline]
+    #[must_use]
     pub fn tag_name(&self) -> &str {
         match &self.node_info.node_type() {
             NodeType::Element { name, .. } => self.doc.get_str_from_location(name.clone()),
@@ -95,6 +101,7 @@ impl<'xml> Node<'xml> {
 
     /// Returns true if the node's tag name matches the provided tag name, false otherwise.
     #[inline]
+    #[must_use]
     pub fn is(&self, tag_name: &str) -> bool {
         self.tag_name() == tag_name
     }
@@ -117,6 +124,8 @@ impl<'xml> Node<'xml> {
     ///
     /// assert_eq!(text_content, "The Text");
     /// ```
+    #[inline]
+    #[must_use]
     pub fn text(&self) -> Option<&'xml str> {
         match &self.node_info.node_type() {
             NodeType::Text(text_location) => {
@@ -143,6 +152,8 @@ impl<'xml> Node<'xml> {
     /// assert_eq!(attributes[1].name(), "id");
     /// assert_eq!(attributes[1].value(), "1");
     /// ```
+    #[inline]
+    #[must_use]
     pub fn attributes(&self) -> Attributes<'xml> {
         Attributes::new(self)
     }
@@ -159,6 +170,8 @@ impl<'xml> Node<'xml> {
     ///
     /// assert!(node.first_child().unwrap().is("child1"));
     /// ```
+    #[inline]
+    #[must_use]
     pub fn first_child(&self) -> Option<Node<'xml>> {
         if self.node_info.first_child_idx() == 0 {
             None
@@ -184,6 +197,8 @@ impl<'xml> Node<'xml> {
     ///
     /// assert!(last_child.is("child2"));
     /// ```
+    #[inline]
+    #[must_use]
     pub fn last_child(&self) -> Option<Node<'xml>> {
         if self.node_info.first_child_idx() == 0 {
             None
@@ -212,6 +227,7 @@ impl<'xml> Node<'xml> {
     /// assert!(next_sibling.is("child2"));
     /// ```
     #[inline]
+    #[must_use]
     pub fn next_sibling(&self) -> Option<Node<'xml>> {
         if self.node_info.next_sibling_idx() == 0 {
             None
@@ -238,6 +254,7 @@ impl<'xml> Node<'xml> {
     /// assert!(prev_sibling.is("child1"));
     /// ```
     #[inline]
+    #[must_use]
     pub fn prev_sibling(&self) -> Option<Node<'xml>> {
         let node_info = &self.doc.nodes[self.node_info.prev_sibling_idx() as usize];
         if node_info.next_sibling_idx() == 0 {
@@ -267,6 +284,8 @@ impl<'xml> Node<'xml> {
     /// assert!(children[0].is("child1"));
     /// assert!(children[1].is("child2"));
     /// ```
+    #[inline]
+    #[must_use]
     pub fn children(&self) -> NodeChildren<'xml> {
         if self.node_info.first_child_idx() == 0 {
             NodeChildren {
@@ -295,6 +314,8 @@ impl<'xml> Node<'xml> {
     /// let root_node = document.root().unwrap();
     /// let descendants: Vec<_> = root_node.descendants().collect();
     /// ```
+    #[inline]
+    #[must_use]
     pub fn descendants(&self) -> Nodes<'xml> {
         Nodes::descendants(self.doc, self.idx)
     }
@@ -311,6 +332,8 @@ impl<'xml> Node<'xml> {
     ///
     /// assert!(root_node.is_root());
     /// ```
+    #[inline]
+    #[must_use]
     pub fn is_root(&self) -> bool {
         self.idx == 1 // The root node is always at index 1
     }
@@ -328,26 +351,30 @@ impl<'xml> Node<'xml> {
     /// assert!(root_node.has_children());
     /// ```
     #[inline]
+    #[must_use]
     pub fn has_children(&self) -> bool {
         self.node_info.first_child_idx() != 0
     }
 
-    /// Returns true if the node is a NodeType::Element, false otherwise.
+    /// Returns true if the node is a `NodeType::Element`, false otherwise.
     #[inline]
+    #[must_use]
     pub fn is_element(&self) -> bool {
         matches!(self.node_info.node_type(), NodeType::Element { .. })
     }
 
-    /// Returns true if the node is a NodeType::Text, false otherwise.
+    /// Returns true if the node is a `NodeType::Text`, false otherwise.
     #[inline]
+    #[must_use]
     pub fn is_text(&self) -> bool {
         matches!(self.node_info.node_type(), NodeType::Text(_))
     }
 
-    /// Returns the NodeType instance associated with this node.
+    /// Returns the `NodeType` instance associated with this node.
     #[inline]
+    #[must_use]
     pub fn get_node_type(&self) -> &NodeType {
-        &self.node_info.node_type()
+        self.node_info.node_type()
     }
 
     /// Finds a child node with the specified tag name.
@@ -367,6 +394,7 @@ impl<'xml> Node<'xml> {
     ///     panic!("Child node not found");
     /// }
     /// ```
+    #[must_use]
     pub fn get_child(&self, tag_name: &str) -> Option<Node<'xml>> {
         if self.node_info.first_child_idx() == 0 {
             return None;
@@ -407,6 +435,7 @@ impl<'xml> Node<'xml> {
     ///     panic!("Sibling node not found");
     /// }
     /// ```
+    #[must_use]
     pub fn get_sibling(&self, tag_name: &str) -> Option<Node<'xml>> {
         if let Some(parent_idx) = self.node_info.parent_idx() {
             let parent_node_info = &self.doc.nodes[parent_idx as usize];
@@ -451,6 +480,7 @@ impl<'xml> Node<'xml> {
     /// }
     /// ```
     #[inline]
+    #[must_use]
     pub fn get_attribute(&self, name: &str) -> Option<&'xml str> {
         for attr in self.attributes() {
             if attr.name() == name {
@@ -479,28 +509,24 @@ impl<'xml> Node<'xml> {
     /// }
     /// ```
     #[inline]
+    #[must_use]
     pub fn parent(&self) -> Option<Node<'xml>> {
-        if let Some(parent_idx) = self.node_info.parent_idx() {
-            Some(Node::new(
-                parent_idx,
-                &self.doc.nodes[parent_idx as usize],
-                self.doc,
-            ))
-        } else {
-            None // Root node has no parent
-        }
+        self.node_info
+            .parent_idx()
+            .map(|parent_idx| Node::new(parent_idx, &self.doc.nodes[parent_idx as usize], self.doc))
     }
 
     /// Returns the position of this node in the XML source.
     #[inline]
+    #[must_use]
     pub fn position(&self) -> XmlIdx {
         self.node_info.position()
     }
 }
 
-impl<'xml> Eq for Node<'xml> {}
+impl Eq for Node<'_> {}
 
-impl<'xml> PartialEq for Node<'xml> {
+impl PartialEq for Node<'_> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.idx == other.idx
@@ -551,7 +577,7 @@ impl<'a> Iterator for NodeChildren<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for NodeChildren<'a> {
+impl DoubleEndedIterator for NodeChildren<'_> {
     /// Returns the previous child node in the iteration.
     ///
     /// If there are no more children, it returns None.
