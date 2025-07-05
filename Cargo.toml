@@ -22,6 +22,7 @@ default = [
     "small_node_count",
     "small_attr_count",
     "medium_xml_size",
+    "forward_only",
 ]
 all_features = [
     "namespace_removal",
@@ -44,6 +45,7 @@ small_xml_size = []
 medium_xml_size = []
 large_xml_size = []
 use_cstr = []
+forward_only = []
 
 [dev-dependencies]
 test_support = { path = "./tests/test_support" }

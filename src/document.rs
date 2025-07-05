@@ -104,7 +104,13 @@ impl Document {
         if doc.nodes.capacity() <= node_count || doc.attributes.capacity() < attr_count {
             return Err(ParseXmlError::NotEnoughMemory);
         }
+
+        // Add the head node as the first node in the document.
+        #[cfg(not(feature = "forward_only"))]
         doc.nodes.push(NodeInfo::new(0, 0, NodeType::Head));
+        #[cfg(feature = "forward_only")]
+        doc.nodes.push(NodeInfo::new(NodeType::Head));
+
         doc.parse()?;
         doc.nodes.shrink_to_fit();
         doc.attributes.shrink_to_fit();
@@ -136,8 +142,15 @@ impl Document {
     #[inline]
     #[must_use]
     pub fn root(&self) -> Option<Node<'_>> {
+        #[cfg(not(feature = "forward_only"))]
         if self.nodes.len() > 1 {
             Some(Node::new(1, &self.nodes[1], self))
+        } else {
+            None // No nodes in the document
+        }
+        #[cfg(feature = "forward_only")]
+        if self.nodes.len() > 1 {
+            Some(Node::new(1, 0, &self.nodes[1], self))
         } else {
             None // No nodes in the document
         }
@@ -169,6 +182,7 @@ impl Document {
         }
     }
 
+    #[cfg(not(feature = "forward_only"))]
     /// Retrieves a node by its index.
     ///
     /// # Arguments
@@ -279,9 +293,14 @@ impl Document {
             *attributes = self.attributes.len() as AttrIdx..self.attributes.len() as AttrIdx;
         }
 
+        #[cfg(not(feature = "forward_only"))]
         let mut node_info = NodeInfo::new(node_idx, parent_idx, node_type);
+        #[cfg(feature = "forward_only")]
+        let mut node_info = NodeInfo::new(node_type);
+
         let parent_info = &mut self.nodes[parent_idx as usize];
 
+        #[cfg(not(feature = "forward_only"))]
         if parent_info.first_child_idx() == 0 {
             parent_info.set_first_child_idx(node_idx); // Set first child if none exists
             node_info.set_prev_sibling_idx(node_idx); // Set previous sibling to this node (last_child)
@@ -293,6 +312,10 @@ impl Document {
             node_info.set_prev_sibling_idx(last_child_idx); // Set previous sibling to last child
         }
 
+        #[cfg(feature = "forward_only")]
+        // if parent_idx != self.last_node_idx() {
+        //     self.nodes[self.last_node_idx() as usize].set_next_sibling_idx(self.nodes.len() as NodeIdx);
+        // }
         self.nodes.push(node_info);
         Ok(node_idx)
     }

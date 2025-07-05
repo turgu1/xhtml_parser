@@ -49,6 +49,8 @@ use crate::node_type::NodeType;
 #[derive(Debug, Clone)]
 pub struct Node<'xml> {
     pub idx: NodeIdx,
+    #[cfg(feature = "forward_only")]
+    pub parent_idx: NodeIdx,
     pub node_info: &'xml NodeInfo,
     pub doc: &'xml Document,
 }
@@ -61,9 +63,17 @@ impl<'xml> Node<'xml> {
     /// - `node_info`: A reference to the `NodeInfo` containing metadata about the node.
     /// - `doc`: A reference to the `Document` containing the XML data.
     #[inline]
-    pub(crate) fn new(idx: NodeIdx, node_info: &'xml NodeInfo, doc: &'xml Document) -> Self {
+    pub(crate) fn new(
+        idx: NodeIdx,
+        #[cfg(feature = "forward_only")] // Only used in forward-only mode
+        parent_idx: NodeIdx,
+        node_info: &'xml NodeInfo,
+        doc: &'xml Document,
+    ) -> Self {
         Node {
             idx,
+            #[cfg(feature = "forward_only")]
+            parent_idx,
             node_info,
             doc,
         }
@@ -74,6 +84,25 @@ impl<'xml> Node<'xml> {
     #[must_use]
     pub fn idx(&self) -> NodeIdx {
         self.idx
+    }
+
+    /// Returns the index of the parent node, if it exists.
+    #[inline]
+    #[must_use]
+    pub(crate) fn parent_idx(&self) -> Option<NodeIdx> {
+        if self.idx <= 1 {
+            None // The root node has no parent
+        } else {
+            #[cfg(feature = "forward_only")]
+            if self.parent_idx != 0 {
+                return Some(self.parent_idx);
+            } else {
+                return None; // In forward-only mode, the parent index may not stored in the node info
+            }
+            #[cfg(not(feature = "forward_only"))]
+            // In non-forward-only mode, the parent index is stored in the node info
+            return self.node_info.parent_idx();
+        }
     }
 
     /// Returns the tag name of the node.
@@ -158,6 +187,45 @@ impl<'xml> Node<'xml> {
         Attributes::new(self)
     }
 
+    /// Returns the first child index of the node, if it exists, None otherwise.
+    ///
+    /// If the node has no children, it returns None.
+    /// If the node is in forward-only mode, it returns the next index that is not a sibling of the current node.
+    ///
+    /// # Example
+    /// ```
+    /// use xhtml_parser::Document;
+    ///
+    /// let xml_data = b"<root><child1/><child2/></root>".to_vec();
+    /// let document = Document::new(xml_data).unwrap();
+    /// let root_node = document.root().unwrap();
+    /// let first_child_idx = root_node.first_child_idx();
+    ///
+    /// assert_eq!(first_child_idx, Some(2)); // Assuming the first child is at index 2
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn first_child_idx(&self) -> Option<NodeIdx> {
+        #[cfg(not(feature = "forward_only"))]
+        {
+            if self.node_info.first_child_idx() == 0 {
+                None
+            } else {
+                Some(self.node_info.first_child_idx())
+            }
+        }
+
+        #[cfg(feature = "forward_only")]
+        // In forward-only mode, the first child is the next index not sibling of the current node
+        if (self.node_info.next_sibling_idx() == self.idx + 1)
+            || (self.doc.last_node_idx() == self.idx)
+        {
+            None
+        } else {
+            Some(self.idx + 1)
+        }
+    }
+
     /// Returns the first child of the node, if it exists, None otherwise.
     ///
     /// # Example
@@ -173,17 +241,18 @@ impl<'xml> Node<'xml> {
     #[inline]
     #[must_use]
     pub fn first_child(&self) -> Option<Node<'xml>> {
-        if self.node_info.first_child_idx() == 0 {
-            None
-        } else {
-            Some(Node::new(
-                self.node_info.first_child_idx(),
-                &self.doc.nodes[self.node_info.first_child_idx() as usize],
+        self.first_child_idx().map(|first_child_idx| {
+            Node::new(
+                first_child_idx,
+                #[cfg(feature = "forward_only")]
+                self.idx,
+                &self.doc.nodes[first_child_idx as usize],
                 self.doc,
-            ))
-        }
+            )
+        })
     }
 
+    #[cfg(not(feature = "forward_only"))]
     /// Returns the last child of the node, if it exists, None otherwise.
     ///
     /// # Example
@@ -234,12 +303,15 @@ impl<'xml> Node<'xml> {
         } else {
             Some(Node::new(
                 self.node_info.next_sibling_idx(),
+                #[cfg(feature = "forward_only")]
+                self.parent_idx,
                 &self.doc.nodes[self.node_info.next_sibling_idx() as usize],
                 self.doc,
             ))
         }
     }
 
+    #[cfg(not(feature = "forward_only"))]
     /// Returns the previous sibling of the node, if it exists, None otherwise.
     ///
     /// # Example
@@ -262,6 +334,8 @@ impl<'xml> Node<'xml> {
         } else {
             Some(Node::new(
                 self.node_info.prev_sibling_idx(),
+                #[cfg(feature = "forward_only")]
+                self.parent_idx,
                 node_info,
                 self.doc,
             ))
@@ -287,15 +361,25 @@ impl<'xml> Node<'xml> {
     #[inline]
     #[must_use]
     pub fn children(&self) -> NodeChildren<'xml> {
-        if self.node_info.first_child_idx() == 0 {
-            NodeChildren {
-                front: None,
-                back: None,
+        if self.has_children() {
+            #[cfg(not(feature = "forward_only"))]
+            {
+                NodeChildren {
+                    front: self.first_child(),
+                    back: self.last_child(),
+                }
+            }
+            #[cfg(feature = "forward_only")]
+            {
+                NodeChildren {
+                    front: self.first_child(),
+                    back: None,
+                }
             }
         } else {
             NodeChildren {
-                front: self.first_child(),
-                back: self.last_child(),
+                front: None,
+                back: None,
             }
         }
     }
@@ -353,7 +437,7 @@ impl<'xml> Node<'xml> {
     #[inline]
     #[must_use]
     pub fn has_children(&self) -> bool {
-        self.node_info.first_child_idx() != 0
+        self.first_child_idx().is_some()
     }
 
     /// Returns true if the node is a `NodeType::Element`, false otherwise.
@@ -396,25 +480,49 @@ impl<'xml> Node<'xml> {
     /// ```
     #[must_use]
     pub fn get_child(&self, tag_name: &str) -> Option<Node<'xml>> {
-        if self.node_info.first_child_idx() == 0 {
-            return None;
-        }
+        self.children().find(|child| child.is(tag_name))
 
-        let mut current_idx = self.node_info.first_child_idx();
-        loop {
-            let current_node_info = &self.doc.nodes[current_idx as usize];
-            let current_node = Node::new(current_idx, current_node_info, self.doc);
+        // self.first_child_idx()
+        //     .map(|first_child_idx| {
+        //         let mut current_idx = first_child_idx;
+        //         loop {
+        //             let current_node_info = &self.doc.nodes[current_idx as usize];
 
-            if current_node.is(tag_name) {
-                return Some(current_node);
-            }
+        //             #[cfg(not(feature = "forward_only"))]
+        //             let current_node = Node::new(current_idx, current_node_info, self.doc);
 
-            if current_node_info.next_sibling_idx() == 0 {
-                break;
-            }
-            current_idx = current_node_info.next_sibling_idx();
-        }
-        None
+        //             #[cfg(feature = "forward_only")]
+        //             let current_node =
+        //                 Node::new(current_idx, self.idx, current_node_info, self.doc);
+
+        //             if current_node.is(tag_name) {
+        //                 return Some(current_node);
+        //             }
+
+        //             if current_node_info.next_sibling_idx() == 0 {
+        //                 break;
+        //             }
+        //             current_idx = current_node_info.next_sibling_idx();
+        //         }
+        //         None
+        //     })
+        //     .flatten()
+
+        // let mut current_idx = self.node_info.first_child_idx();
+        // loop {
+        //     let current_node_info = &self.doc.nodes[current_idx as usize];
+        //     let current_node = Node::new(current_idx, current_node_info, self.doc);
+
+        //     if current_node.is(tag_name) {
+        //         return Some(current_node);
+        //     }
+
+        //     if current_node_info.next_sibling_idx() == 0 {
+        //         break;
+        //     }
+        //     current_idx = current_node_info.next_sibling_idx();
+        // }
+        // None
     }
 
     /// Finds a sibling node with the specified tag name.
@@ -437,30 +545,34 @@ impl<'xml> Node<'xml> {
     /// ```
     #[must_use]
     pub fn get_sibling(&self, tag_name: &str) -> Option<Node<'xml>> {
-        if let Some(parent_idx) = self.node_info.parent_idx() {
-            let parent_node_info = &self.doc.nodes[parent_idx as usize];
-            if parent_node_info.first_child_idx() == 0 {
-                return None;
-            }
+        self.parent()
+            .map(|parent| parent.children().find(|sibling| sibling.is(tag_name)))
+            .flatten()
 
-            let mut current_idx = parent_node_info.first_child_idx();
-            loop {
-                let current_node_info = &self.doc.nodes[current_idx as usize];
-                let current_node = Node::new(current_idx, current_node_info, self.doc);
+        // self.parent_idx()
+        //     .map(|parent_idx| {
+        //         let parent_node_info = &self.doc.nodes[parent_idx as usize];
+        //         if parent_node_info.first_child_idx() == 0 {
+        //             return None;
+        //         }
 
-                if current_node.is(tag_name) {
-                    return Some(current_node);
-                }
+        //         let mut current_idx = parent_node_info.first_child_idx();
+        //         loop {
+        //             let current_node_info = &self.doc.nodes[current_idx as usize];
+        //             let current_node = Node::new(current_idx, current_node_info, self.doc);
 
-                if current_node_info.next_sibling_idx() == 0 {
-                    break;
-                }
-                current_idx = current_node_info.next_sibling_idx();
-            }
-            None
-        } else {
-            None
-        }
+        //             if current_node.is(tag_name) {
+        //                 return Some(current_node);
+        //             }
+
+        //             if current_node_info.next_sibling_idx() == 0 {
+        //                 break;
+        //             }
+        //             current_idx = current_node_info.next_sibling_idx();
+        //         }
+        //         None
+        //     })
+        //     .flatten()
     }
 
     /// searches for an attribute by name and returns its value if found.
@@ -511,9 +623,19 @@ impl<'xml> Node<'xml> {
     #[inline]
     #[must_use]
     pub fn parent(&self) -> Option<Node<'xml>> {
-        self.node_info
-            .parent_idx()
-            .map(|parent_idx| Node::new(parent_idx, &self.doc.nodes[parent_idx as usize], self.doc))
+        #[cfg(not(feature = "forward_only"))]
+        return self.parent_idx().map(|parent_idx| {
+            Node::new(parent_idx, &self.doc.nodes[parent_idx as usize], self.doc)
+        });
+        #[cfg(feature = "forward_only")]
+        return self.parent_idx().map(|parent_idx| {
+            Node::new(
+                parent_idx,
+                0, // In forward-only mode, parent_idx of parent is 0 as we can't traverse backwards
+                &self.doc.nodes[parent_idx as usize],
+                self.doc,
+            )
+        });
     }
 
     /// Returns the position of this node in the XML source.
@@ -577,6 +699,7 @@ impl<'a> Iterator for NodeChildren<'a> {
     }
 }
 
+#[cfg(not(feature = "forward_only"))]
 impl DoubleEndedIterator for NodeChildren<'_> {
     /// Returns the previous child node in the iteration.
     ///
