@@ -40,11 +40,17 @@ const AMPERSAND: u8 = b'&';
 const SEMI_COLON: u8 = b';';
 const HASH: u8 = b'#';
 const X_CHAR: u8 = b'x';
-const COLON: u8 = b':';
 const LEFT_BRACKET: u8 = b'[';
 const RIGHT_BRACKET: u8 = b']';
 const SPACE: u8 = b' ';
+
+#[cfg(feature = "namespace_removal")]
+const COLON: u8 = b':';
+
+#[cfg(not(feature = "parse_escapes"))]
 const NEWLINE: u8 = b'\n';
+
+#[cfg(not(feature = "parse_escapes"))]
 const CARRIAGE_RETURN: u8 = b'\r';
 
 #[allow(dead_code)]
@@ -220,6 +226,20 @@ macro_rules! search_char {
     };
 }
 
+struct Parent {
+    parent_idx: NodeIdx,
+    last_child_idx: NodeIdx,
+}
+
+impl Parent {
+    fn new(parent_idx: NodeIdx) -> Self {
+        Self {
+            parent_idx,
+            last_child_idx: 0,
+        }
+    }
+}
+
 impl Document {
     /// Skips a specific slice in the XML buffer, returning the next position after the slice.
     ///
@@ -292,6 +312,7 @@ impl Document {
             .map(|pos| range.start + pos as XmlIdx)
     }
 
+    #[cfg(not(feature = "parse_escapes"))]
     /// Scans a range in the XML buffer for a specific character and returns the position of the first occurrence.
     ///
     /// This method searches for the first occurrence of the specified character within the given range.
@@ -457,21 +478,38 @@ impl Document {
         parent_idx: NodeIdx,
         location: XmlLocation,
     ) -> Result<(), ParseXmlError> {
-        let parent = self.get_node(parent_idx)?;
-        if let NodeType::Element { name, .. } = parent.get_node_type() {
-            let tag_name = self.get_str_from_location(name.clone());
-            let closing_tag = self.get_str_from_location(location.clone());
-            if tag_name != closing_tag {
-                #[cfg(feature = "use_cstr")]
-                let position = location;
+        if let NodeType::Element { name, .. } = self.nodes[parent_idx as usize].node_type() {
+            #[cfg(not(feature = "use_cstr"))]
+            {
+                let tag_name = self.get_str_from_location(name.clone());
+                let closing_tag = self.get_str_from_location(location.clone());
+                if tag_name != closing_tag {
+                    return self.invalid(
+                        &format!(
+                            "Closing tag '{closing_tag}' does not match opening tag '{tag_name}'"
+                        ),
+                        location.start,
+                    );
+                }
+            }
+            #[cfg(feature = "use_cstr")]
+            {
+                let tag_name = std::ffi::CStr::from_bytes_until_nul(&self.xml[*name as usize..])
+                    .or_else(|_| Err(ParseXmlError::InternalError))?;
+                let closing_tag =
+                    std::ffi::CStr::from_bytes_until_nul(&self.xml[location as usize..])
+                        .or_else(|_| Err(ParseXmlError::InternalError))?;
 
-                #[cfg(not(feature = "use_cstr"))]
-                let position = location.start;
-
-                return self.invalid(
-                    &format!("Closing tag '{closing_tag}' does not match opening tag '{tag_name}'"),
-                    position,
-                );
+                if tag_name != closing_tag {
+                    return self.invalid(
+                        &format!(
+                            "Closing tag '{}' does not match opening tag '{}'",
+                            self.get_str_from_location(location),
+                            self.get_str_from_location(*name)
+                        ),
+                        location,
+                    );
+                }
             }
         } else {
             #[cfg(feature = "use_cstr")]
@@ -626,16 +664,16 @@ impl Document {
         let mut from = range.start;
 
         loop {
-            let next_pos = if cfg!(feature = "parse_escapes") {
-                match self.scan_range_for_chartype(from..end, Chartype::ParsePCData) {
-                    Some(pos) => pos,
-                    None => end, // No more characters of the specified type found
-                }
-            } else {
-                match self.scan_range_for_char(from..end, CARRIAGE_RETURN) {
-                    Some(pos) => pos,
-                    None => end, // No more '&' found
-                }
+            #[cfg(feature = "parse_escapes")]
+            let next_pos = match self.scan_range_for_chartype(from..end, Chartype::ParsePCData) {
+                Some(pos) => pos,
+                None => end, // No more characters of the specified type found
+            };
+
+            #[cfg(not(feature = "parse_escapes"))]
+            let next_pos = match self.scan_range_for_char(from..end, CARRIAGE_RETURN) {
+                Some(pos) => pos,
+                None => end,
             };
 
             if next_pos >= end {
@@ -645,17 +683,18 @@ impl Document {
                         .copy_within(from as usize..end as usize, to as usize);
                 }
                 to += end - from;
-                break; // No more '&' found
+                break;
             }
 
             if next_pos > from {
-                // Move the content before the '&' to the `to` position
+                // Move the content before to the `to` position
                 self.xml
                     .copy_within(from as usize..next_pos as usize, to as usize);
                 to += next_pos - from;
             }
 
-            if cfg!(feature = "parse_escapes") && self.xml[next_pos as usize] == AMPERSAND {
+            #[cfg(feature = "parse_escapes")]
+            if self.xml[next_pos as usize] == AMPERSAND {
                 match self.translate_sequence(next_pos + 1, to) {
                     Some((new_from, new_to)) => {
                         from = new_from;
@@ -666,7 +705,10 @@ impl Document {
                         from += 1;
                     }
                 }
-            } else {
+            }
+
+            #[cfg(not(feature = "parse_escapes"))]
+            {
                 // This is a carriage return
                 self.xml[to as usize] = NEWLINE; // Replace with a newline character
                 to += 1; // Move the `to` position forward
@@ -795,6 +837,7 @@ impl Document {
         end
     }
 
+    #[cfg(feature = "namespace_removal")]
     /// Removes the namespace prefix from an XML element or attribute name.
     ///
     /// This method searches for a colon (`:`) character within the specified range
@@ -856,11 +899,9 @@ impl Document {
     /// - Unexpected end of document
     #[allow(clippy::too_many_lines)]
     pub(crate) fn parse(&mut self) -> Result<(), ParseXmlError> {
-        let root_idx: NodeIdx = 0;
+        let mut parenthood = Vec::<Parent>::with_capacity(20);
+        let mut level = 0usize;
 
-        //let contents = self.xml.as_slice();
-
-        let mut parent_idx = root_idx;
         let mut state = State::Start;
         let mut i: XmlIdx = 0 as XmlIdx;
 
@@ -974,13 +1015,13 @@ impl Document {
                         None => break,
                     };
 
-                    let name_range = if cfg!(feature = "namespace_removal") {
-                        // Remove namespace prefix from attribute name
-                        self.remove_namespace_prefix(start..i)
-                    } else {
-                        // If namespace removal is not enabled, use the original range
-                        start..i
-                    };
+                    #[cfg(feature = "namespace_removal")]
+                    // Remove namespace prefix from attribute name
+                    let name_range = self.remove_namespace_prefix(start..i);
+
+                    #[cfg(not(feature = "namespace_removal"))]
+                    // If namespace removal is not enabled, use the original range
+                    let name_range = start..i;
 
                     #[cfg(feature = "use_cstr")]
                     {
@@ -988,14 +1029,31 @@ impl Document {
                         let byte = self.xml[i as usize];
 
                         self.xml[name_range.end as usize] = 0; // Null-terminate the string
-                        let node_idx = self.add_node(
-                            parent_idx,
-                            NodeType::Element {
-                                name: name_range.start,
-                                attributes: 0..0, // Placeholder for attributes range
-                            },
-                        )?;
-                        parent_idx = node_idx;
+                        let node_idx = if level == 0 {
+                            // If this is the root element, we set the root node index
+                            self.add_node(
+                                0,
+                                0,
+                                NodeType::Element {
+                                    name: name_range.start,
+                                    attributes: 0..0, // Placeholder for attributes range
+                                },
+                            )?
+                        } else {
+                            self.add_node(
+                                parenthood[level - 1].parent_idx,
+                                parenthood[level - 1].last_child_idx,
+                                NodeType::Element {
+                                    name: name_range.start,
+                                    attributes: 0..0, // Placeholder for attributes range
+                                },
+                            )?
+                        };
+                        if level > 0 {
+                            parenthood[level - 1].last_child_idx = node_idx;
+                        }
+                        parenthood.push(Parent::new(node_idx));
+                        level += 1;
 
                         i += 1; // skip the null terminator (or not if there was a removed namespace prefix)
 
@@ -1004,19 +1062,20 @@ impl Document {
                                 return self
                                     .invalid("Expected '>' after '/' in self-closing tag", i);
                             }
-                            parent_idx = self.get_parent_idx(parent_idx)?;
+                            parenthood.pop();
+                            level -= 1;
 
-                            if parent_idx == 0 {
+                            if level == 0 {
                                 state = State::End;
                                 continue;
-                            } else {
-                                i += 1;
-                                if i >= size {
-                                    break;
-                                }
-                                state = State::ReadPCData;
-                                continue;
                             }
+
+                            i += 1;
+                            if i >= size {
+                                break;
+                            }
+                            state = State::ReadPCData;
+                            continue;
                         } else if byte == GREATER_THAN {
                             if i >= size {
                                 break;
@@ -1028,14 +1087,30 @@ impl Document {
 
                     #[cfg(not(feature = "use_cstr"))]
                     {
-                        let node_idx = self.add_node(
-                            parent_idx,
-                            NodeType::Element {
-                                name: name_range,
-                                attributes: 0..0, // Placeholder for attributes range
-                            },
-                        )?;
-                        parent_idx = node_idx;
+                        let node_idx = if level == 0 {
+                            self.add_node(
+                                0,
+                                0,
+                                NodeType::Element {
+                                    name: name_range,
+                                    attributes: 0..0, // Placeholder for attributes range
+                                },
+                            )?
+                        } else {
+                            self.add_node(
+                                parenthood[level - 1].parent_idx,
+                                parenthood[level - 1].last_child_idx,
+                                NodeType::Element {
+                                    name: name_range,
+                                    attributes: 0..0, // Placeholder for attributes range
+                                },
+                            )?
+                        };
+                        if level > 0 {
+                            parenthood[level - 1].last_child_idx = node_idx;
+                        }
+                        parenthood.push(Parent::new(node_idx));
+                        level += 1;
                     }
 
                     State::ReadAttribute
@@ -1052,30 +1127,42 @@ impl Document {
                         return self.invalid("Expected tag name after '</'", i);
                     }
 
-                    let name_range = if cfg!(feature = "namespace_removal") {
-                        // Remove namespace prefix from attribute name
-                        self.remove_namespace_prefix(start..i)
-                    } else {
-                        // If namespace removal is not enabled, use the original range
-                        start..i
-                    };
+                    #[cfg(feature = "namespace_removal")]
+                    // Remove namespace prefix from attribute name
+                    let name_range = self.remove_namespace_prefix(start..i);
+
+                    #[cfg(not(feature = "namespace_removal"))]
+                    // If namespace removal is not enabled, use the original range
+                    let name_range = start..i;
 
                     let is_greater_than = self.xml[i as usize] == GREATER_THAN;
 
                     #[cfg(feature = "use_cstr")]
                     {
                         self.xml[name_range.end as usize] = 0; // Null-terminate the string
-                        self.check_closing_tag(parent_idx, name_range.start)?;
+                        if level > 0 {
+                            self.check_closing_tag(
+                                parenthood[level - 1].parent_idx,
+                                name_range.start,
+                            )?;
+                        } else {
+                            return self.invalid("No opening tag for closing tag", i);
+                        }
                     }
 
                     #[cfg(not(feature = "use_cstr"))]
-                    self.check_closing_tag(parent_idx, name_range)?;
+                    {
+                        if level > 0 {
+                            self.check_closing_tag(parenthood[level - 1].parent_idx, name_range)?;
+                        } else {
+                            return self.invalid("No opening tag for closing tag", i);
+                        }
+                    }
 
-                    parent_idx = if parent_idx == 1 {
-                        0
-                    } else {
-                        self.get_parent_idx(parent_idx)?
-                    };
+                    if level > 0 {
+                        parenthood.pop();
+                        level -= 1;
+                    }
 
                     if !is_greater_than {
                         i = match self.scan_until_char(i + 1, GREATER_THAN) {
@@ -1085,7 +1172,7 @@ impl Document {
                     }
 
                     i += 1;
-                    if i >= size || parent_idx == 0 {
+                    if i >= size || level == 0 {
                         State::End
                     } else {
                         State::ReadPCData
@@ -1106,9 +1193,10 @@ impl Document {
                                 return self
                                     .invalid("Expected '>' after '/' in self-closing tag", i);
                             }
-                            parent_idx = self.get_parent_idx(parent_idx)?;
+                            parenthood.pop();
+                            level -= 1;
 
-                            if parent_idx == 0 {
+                            if level == 0 {
                                 State::End
                             } else {
                                 i += 1;
@@ -1164,27 +1252,39 @@ impl Document {
 
                             let value_range = self.normalize_attribute_value(&(value_start..i));
 
-                            let name_range = if cfg!(feature = "namespace_removal") {
-                                // Remove namespace prefix from attribute name
-                                self.remove_namespace_prefix(start..end)
-                            } else {
-                                // If namespace removal is not enabled, use the original range
-                                start..end
-                            };
+                            #[cfg(feature = "namespace_removal")]
+                            // Remove namespace prefix from attribute name
+                            let name_range = self.remove_namespace_prefix(start..end);
+
+                            #[cfg(not(feature = "namespace_removal"))]
+                            // If namespace removal is not enabled, use the original range
+                            let name_range = start..end;
 
                             #[cfg(feature = "use_cstr")]
                             {
                                 self.xml[name_range.end as usize] = 0; // Null-terminate the string
                                 self.xml[value_range.end as usize] = 0; // Null-terminate the value
-                                self.add_attribute(
-                                    parent_idx,
-                                    name_range.start,
-                                    value_range.start,
-                                )?;
+                                if level > 0 {
+                                    self.add_attribute(
+                                        parenthood[level - 1].parent_idx,
+                                        name_range.start,
+                                        value_range.start,
+                                    )?;
+                                } else {
+                                    break;
+                                }
                             }
 
                             #[cfg(not(feature = "use_cstr"))]
-                            self.add_attribute(parent_idx, name_range, value_range)?;
+                            if level > 0 {
+                                self.add_attribute(
+                                    parenthood[level - 1].parent_idx,
+                                    name_range,
+                                    value_range,
+                                )?;
+                            } else {
+                                break;
+                            }
 
                             i += 1;
                             State::ReadAttribute
@@ -1219,26 +1319,60 @@ impl Document {
                                     #[cfg(feature = "use_cstr")]
                                     {
                                         self.xml[text_range.end as usize] = 0; // Null-terminate the string
-                                        self.add_node(
-                                            parent_idx,
-                                            NodeType::Text(text_range.start),
+                                        if level > 0 {
+                                            let node_idx = self.add_node(
+                                                parenthood[level - 1].parent_idx,
+                                                parenthood[level - 1].last_child_idx,
+                                                NodeType::Text(text_range.start),
+                                            )?;
+                                            parenthood[level - 1].last_child_idx = node_idx;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+
+                                    #[cfg(not(feature = "use_cstr"))]
+                                    if level > 0 {
+                                        let node_idx = self.add_node(
+                                            parenthood[level - 1].parent_idx,
+                                            parenthood[level - 1].last_child_idx,
+                                            NodeType::Text(text_range),
                                         )?;
+                                        parenthood[level - 1].last_child_idx = node_idx;
+                                    } else {
+                                        break;
                                     }
+                                } else {
+                                    #[cfg(feature = "keep_ws_only_pcdata")]
+                                    if i > space_start && level != 0 {
+                                        #[cfg(feature = "use_cstr")]
+                                        {
+                                            self.xml[i as usize] = 0; // Null-terminate the string
+                                            if level > 0 {
+                                                let node_idx = self.add_node(
+                                                    parenthood[level - 1].parent_idx,
+                                                    parenthood[level - 1].last_child_idx,
+                                                    NodeType::Text(space_start),
+                                                )?;
+                                                parenthood[level - 1].last_child_idx = node_idx;
+                                            } else {
+                                                break;
+                                            }
+                                        }
 
-                                    #[cfg(not(feature = "use_cstr"))]
-                                    self.add_node(parent_idx, NodeType::Text(text_range))?;
-                                } else if i > space_start
-                                    && cfg!(feature = "keep_ws_only_pcdata")
-                                    && parent_idx != 0
-                                {
-                                    #[cfg(feature = "use_cstr")]
-                                    {
-                                        self.xml[i as usize] = 0; // Null-terminate the string
-                                        self.add_node(parent_idx, NodeType::Text(space_start))?;
+                                        #[cfg(not(feature = "use_cstr"))]
+                                        if level > 0 {
+                                            // If we are keeping whitespace-only text nodes
+                                            let node_idx = self.add_node(
+                                                parenthood[level - 1].parent_idx,
+                                                parenthood[level - 1].last_child_idx,
+                                                NodeType::Text(space_start..i),
+                                            )?;
+                                            parenthood[level - 1].last_child_idx = node_idx;
+                                        } else {
+                                            break;
+                                        }
                                     }
-
-                                    #[cfg(not(feature = "use_cstr"))]
-                                    self.add_node(parent_idx, NodeType::Text(space_start..i))?;
                                 }
 
                                 i += 1; // Reset i to the position after the '<'

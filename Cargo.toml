@@ -1,6 +1,6 @@
 [package]
 name = "xhtml_parser"
-version = "0.2.7"
+version = "0.2.8"
 authors = ["Guy Turcotte"]
 description = "Non-validating XHTML Tree-based parser."
 readme = "README.md"
@@ -22,15 +22,20 @@ default = [
     "small_node_count",
     "small_attr_count",
     "medium_xml_size",
+    "use_cstr",
     "forward_only",
 ]
+
 all_features = [
     "namespace_removal",
     "parse_escapes",
     "keep_ws_only_pcdata",
     "trim_pcdata",
     "use_cstr",
+    "forward_only",
 ]
+
+
 namespace_removal = []
 parse_escapes = []
 keep_ws_only_pcdata = []
@@ -55,4 +60,4 @@ timelapse = "0.1.3"
 travis-ci = { repository = "turgu1/xhtml_parser" }
 
 [profile.release]
-opt-level = 3
+# debug = true

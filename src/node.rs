@@ -95,13 +95,13 @@ impl<'xml> Node<'xml> {
         } else {
             #[cfg(feature = "forward_only")]
             if self.parent_idx != 0 {
-                return Some(self.parent_idx);
+                Some(self.parent_idx)
             } else {
-                return None; // In forward-only mode, the parent index may not stored in the node info
+                None // In forward-only mode, the parent index may not stored in the node info
             }
             #[cfg(not(feature = "forward_only"))]
             // In non-forward-only mode, the parent index is stored in the node info
-            return self.node_info.parent_idx();
+            self.node_info.parent_idx()
         }
     }
 
@@ -123,7 +123,10 @@ impl<'xml> Node<'xml> {
     #[must_use]
     pub fn tag_name(&self) -> &str {
         match &self.node_info.node_type() {
+            #[cfg(not(feature = "use_cstr"))]
             NodeType::Element { name, .. } => self.doc.get_str_from_location(name.clone()),
+            #[cfg(feature = "use_cstr")]
+            NodeType::Element { name, .. } => self.doc.get_str_from_location(*name),
             _ => "", // No tag name for non-element nodes
         }
     }
@@ -157,9 +160,12 @@ impl<'xml> Node<'xml> {
     #[must_use]
     pub fn text(&self) -> Option<&'xml str> {
         match &self.node_info.node_type() {
+            #[cfg(not(feature = "use_cstr"))]
             NodeType::Text(text_location) => {
                 Some(self.doc.get_str_from_location(text_location.clone()))
             }
+            #[cfg(feature = "use_cstr")]
+            NodeType::Text(text_location) => Some(self.doc.get_str_from_location(*text_location)),
             _ => None,
         }
     }
@@ -206,23 +212,10 @@ impl<'xml> Node<'xml> {
     #[inline]
     #[must_use]
     pub fn first_child_idx(&self) -> Option<NodeIdx> {
-        #[cfg(not(feature = "forward_only"))]
-        {
-            if self.node_info.first_child_idx() == 0 {
-                None
-            } else {
-                Some(self.node_info.first_child_idx())
-            }
-        }
-
-        #[cfg(feature = "forward_only")]
-        // In forward-only mode, the first child is the next index not sibling of the current node
-        if (self.node_info.next_sibling_idx() == self.idx + 1)
-            || (self.doc.last_node_idx() == self.idx)
-        {
+        if self.node_info.first_child_idx() == 0 {
             None
         } else {
-            Some(self.idx + 1)
+            Some(self.node_info.first_child_idx())
         }
     }
 
@@ -546,8 +539,7 @@ impl<'xml> Node<'xml> {
     #[must_use]
     pub fn get_sibling(&self, tag_name: &str) -> Option<Node<'xml>> {
         self.parent()
-            .map(|parent| parent.children().find(|sibling| sibling.is(tag_name)))
-            .flatten()
+            .and_then(|parent| parent.children().find(|sibling| sibling.is(tag_name)))
 
         // self.parent_idx()
         //     .map(|parent_idx| {

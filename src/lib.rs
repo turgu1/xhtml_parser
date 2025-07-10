@@ -59,7 +59,7 @@
 //! ### [0.2.7] - 2025-07-01
 //!
 //! - Clippy (and pedantic) related refactoring.
-//! - State::ReadTagClose parsing update. parser::translate_sequence() method revisited.
+//! - `State::ReadTagClose` parsing update. `parser::translate_sequence()` method revisited.
 //! - Methods' `#[inline]` adjustments for better performance.
 //! - Adjusted performance results after testing.
 //! - Added `small_attr_count`, `medium_attr_count`, and `large_attr_count` features to use 16, 32, or 64-bit indices for the attributes vector, respectively. `small_attr_count` is the default value.

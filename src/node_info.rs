@@ -28,6 +28,7 @@ pub struct NodeInfo {
 #[must_use]
 pub struct NodeInfo {
     next_sibling: NodeIdx, // Could be next_sibling or the node following the parent
+    first_child: NodeIdx,  // First child of this node
     node_type: NodeType,
 }
 
@@ -56,6 +57,7 @@ impl NodeInfo {
     pub(crate) fn new(node_type: NodeType) -> Self {
         NodeInfo {
             next_sibling: 0,
+            first_child: 0,
             node_type,
         }
     }
@@ -94,7 +96,6 @@ impl NodeInfo {
         self.next_sibling
     }
 
-    #[cfg(not(feature = "forward_only"))]
     /// Returns the index of the first child of this node.
     #[inline]
     #[must_use]
@@ -147,7 +148,6 @@ impl NodeInfo {
         self.prev_sibling = idx;
     }
 
-    #[cfg(not(feature = "forward_only"))]
     /// Sets the first child index for this node.
     #[inline]
     pub fn set_first_child_idx(&mut self, idx: NodeIdx) {

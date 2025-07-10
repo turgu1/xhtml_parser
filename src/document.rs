@@ -69,8 +69,6 @@ impl Document {
     /// - The `new` method estimates the number of nodes and attributes based on the XML content and allocates memory accordingly.
     ///   This is done to optimize performance and reduce memory reallocations during parsing.
     pub fn new(xml: Vec<u8>) -> Result<Self, ParseXmlError> {
-        // let mut node_count = xml.iter().filter(|&&b| b == b'<').count();
-        // let attr_count = xml.iter().filter(|&&b| b == b'=').count();
         let mut node_count = memchr_iter(b'<', xml.as_slice()).count();
         let attr_count = memchr_iter(b'=', xml.as_slice()).count();
         node_count += (node_count / 10) + 1; // Add 10% buffer for nodes
@@ -148,6 +146,7 @@ impl Document {
         } else {
             None // No nodes in the document
         }
+
         #[cfg(feature = "forward_only")]
         if self.nodes.len() > 1 {
             Some(Node::new(1, 0, &self.nodes[1], self))
@@ -204,6 +203,33 @@ impl Document {
         Ok(Node::new(node_idx, &self.nodes[node_idx as usize], self))
     }
 
+    #[cfg(feature = "forward_only")]
+    /// Retrieves a node by its index.
+    ///
+    /// # Arguments
+    /// - `node_idx`: The index of the node to retrieve.
+    ///
+    /// # Returns
+    /// - `Ok(Node)`: The node at the specified index.
+    /// - `Err(ParseXmlError)`: If the node index is invalid or out of bounds.
+    ///
+    /// # Errors
+    /// - `ParseXmlError::InvalidXml`: If the node index is invalid or out of bounds.
+    ///
+    /// # Notes
+    /// This method is optimized for forward-only traversal of nodes. It is **not** suitable to
+    /// get access to the parent node of any previous node.
+    /// It is designed to be used in scenarios where nodes are processed in a forward-only manner
+    #[inline]
+    pub fn get_node(&self, node_idx: NodeIdx) -> Result<Node<'_>, ParseXmlError> {
+        if node_idx as usize >= self.nodes.len() {
+            return Err(ParseXmlError::InvalidXml(format!(
+                "Invalid node index: {node_idx}"
+            )));
+        }
+        Ok(Node::new(node_idx, 0, &self.nodes[node_idx as usize], self))
+    }
+
     /// Returns the XML content of the document as a byte vector.
     #[inline]
     #[must_use]
@@ -211,61 +237,64 @@ impl Document {
         &self.xml
     }
 
-    /// Retrieves the parent index of a given node.
-    ///
-    /// # Arguments
-    /// - `node_idx`: The index of the node whose parent index is to be retrieved.
-    ///
-    /// # Returns
-    /// - `Ok(NodeIdx)`: The index of the parent node.
-    /// - `Err(ParseXmlError)`: If the node index is invalid or if the node has no parent (e.g., root node).
-    ///
-    /// # Example
-    /// ```rust
-    /// use xhtml_parser::Document;
-    ///
-    /// let xml_data = b"<root><child>Text</child></root>".to_vec();
-    /// let document = Document::new(xml_data).unwrap();
-    /// let child_node = document.get_node(2).unwrap(); // Assuming 2 is the index of the child node
-    /// let parent_idx = document.get_parent_idx(child_node.idx()).unwrap();
-    ///
-    /// assert_eq!(parent_idx, 1); // The parent of the child node is the root node (index 1)
-    ///
-    /// let root_node = document.root().unwrap();
-    ///
-    /// assert_eq!(root_node.idx(), 1); // The root node index is 1
-    ///
-    /// // Attempting to get the parent of the root node should return an error
-    /// let parent_of_root = document.get_parent_idx(root_node.idx());
-    ///
-    /// assert!(parent_of_root.is_err(), "Root node should not have a parent");
-    ///
-    /// // Attempting to get the parent of an invalid node index should return an error
-    /// let invalid_node_idx = 100; // Assuming this index is out of bounds
-    /// let invalid_parent = document.get_parent_idx(invalid_node_idx);
-    ///
-    /// assert!(invalid_parent.is_err(), "Invalid node index should return an error");
-    /// ```
-    /// # Notes
-    /// - The root node (index 1) has no parent, so attempting to get its parent will return an error.
-    /// - The method checks if the node index is valid and returns an error if it is not.
-    /// # Errors
-    /// - `ParseXmlError::InvalidXml`: If the node index is invalid or if the node has no parent (e.g., root node).
-    pub fn get_parent_idx(&self, node_idx: NodeIdx) -> Result<NodeIdx, ParseXmlError> {
-        if (node_idx == 0) || (node_idx as usize >= self.nodes.len()) {
-            Err(ParseXmlError::InvalidXml(format!(
-                "Invalid node index: {node_idx}"
-            )))
-        } else if node_idx > 1 {
-            self.nodes[node_idx as usize].parent_idx().ok_or_else(|| {
-                ParseXmlError::InvalidXml(format!("Node index {node_idx} has no parent"))
-            })
-        } else {
-            Err(ParseXmlError::InvalidXml(
-                "Root node has no parent".to_string(),
-            ))
-        }
-    }
+    // No longer needed. I keep the code in case it would be required again
+    // --------------------------------------------------------------------
+    //
+    // /// Retrieves the parent index of a given node.
+    // ///
+    // /// # Arguments
+    // /// - `node_idx`: The index of the node whose parent index is to be retrieved.
+    // ///
+    // /// # Returns
+    // /// - `Ok(NodeIdx)`: The index of the parent node.
+    // /// - `Err(ParseXmlError)`: If the node index is invalid or if the node has no parent (e.g., root node).
+    // ///
+    // /// # Example
+    // /// ```rust
+    // /// use xhtml_parser::Document;
+    // ///
+    // /// let xml_data = b"<root><child>Text</child></root>".to_vec();
+    // /// let document = Document::new(xml_data).unwrap();
+    // /// let child_node = document.get_node(2).unwrap(); // Assuming 2 is the index of the child node
+    // /// let parent_idx = document.get_parent_idx(child_node.idx()).unwrap();
+    // ///
+    // /// assert_eq!(parent_idx, 1); // The parent of the child node is the root node (index 1)
+    // ///
+    // /// let root_node = document.root().unwrap();
+    // ///
+    // /// assert_eq!(root_node.idx(), 1); // The root node index is 1
+    // ///
+    // /// // Attempting to get the parent of the root node should return an error
+    // /// let parent_of_root = document.get_parent_idx(root_node.idx());
+    // ///
+    // /// assert!(parent_of_root.is_err(), "Root node should not have a parent");
+    // ///
+    // /// // Attempting to get the parent of an invalid node index should return an error
+    // /// let invalid_node_idx = 100; // Assuming this index is out of bounds
+    // /// let invalid_parent = document.get_parent_idx(invalid_node_idx);
+    // ///
+    // /// assert!(invalid_parent.is_err(), "Invalid node index should return an error");
+    // /// ```
+    // /// # Notes
+    // /// - The root node (index 1) has no parent, so attempting to get its parent will return an error.
+    // /// - The method checks if the node index is valid and returns an error if it is not.
+    // /// # Errors
+    // /// - `ParseXmlError::InvalidXml`: If the node index is invalid or if the node has no parent (e.g., root node).
+    // pub fn get_parent_idx(&self, node_idx: NodeIdx) -> Result<NodeIdx, ParseXmlError> {
+    //     if (node_idx == 0) || (node_idx as usize >= self.nodes.len()) {
+    //         Err(ParseXmlError::InvalidXml(format!(
+    //             "Invalid node index: {node_idx}"
+    //         )))
+    //     } else if node_idx > 1 {
+    //         self.nodes[node_idx as usize].parent_idx().ok_or_else(|| {
+    //             ParseXmlError::InvalidXml(format!("Node index {node_idx} has no parent"))
+    //         })
+    //     } else {
+    //         Err(ParseXmlError::InvalidXml(
+    //             "Root node has no parent".to_string(),
+    //         ))
+    //     }
+    // }
 
     /// Adds a new node to the document.
     /// This method allows adding a new node to the document tree, setting its parent,
@@ -281,6 +310,7 @@ impl Document {
     pub(crate) fn add_node(
         &mut self,
         parent_idx: NodeIdx,
+        last_child_idx: NodeIdx,
         mut node_type: NodeType,
     ) -> Result<NodeIdx, ParseXmlError> {
         let node_idx = self.nodes.len() as NodeIdx;
@@ -295,24 +325,39 @@ impl Document {
 
         #[cfg(not(feature = "forward_only"))]
         let mut node_info = NodeInfo::new(node_idx, parent_idx, node_type);
-        #[cfg(feature = "forward_only")]
-        let mut node_info = NodeInfo::new(node_type);
 
-        let parent_info = &mut self.nodes[parent_idx as usize];
+        #[cfg(feature = "forward_only")]
+        let node_info = NodeInfo::new(node_type);
 
         #[cfg(not(feature = "forward_only"))]
-        if parent_info.first_child_idx() == 0 {
-            parent_info.set_first_child_idx(node_idx); // Set first child if none exists
-            node_info.set_prev_sibling_idx(node_idx); // Set previous sibling to this node (last_child)
-        } else {
-            let first_child_idx = parent_info.first_child_idx(); // Get first child index of parent
-            let last_child_idx = self.nodes[first_child_idx as usize].prev_sibling_idx(); // Get last child Index of parent
-            self.nodes[last_child_idx as usize].set_next_sibling_idx(node_idx); // Set next sibling of last child
-            self.nodes[first_child_idx as usize].set_prev_sibling_idx(node_idx); // Set previous sibling of first child to last child
-            node_info.set_prev_sibling_idx(last_child_idx); // Set previous sibling to last child
+        {
+            let parent_info = &mut self.nodes[parent_idx as usize];
+
+            if parent_info.first_child_idx() == 0 {
+                parent_info.set_first_child_idx(node_idx); // Set first child if none exists
+                node_info.set_prev_sibling_idx(node_idx); // Set previous sibling to this node (last_child)
+            } else {
+                let first_child_idx = parent_info.first_child_idx(); // Get first child index of parent
+
+                // let last_child_idx = self.nodes[first_child_idx as usize].prev_sibling_idx(); // Get last child Index of parent
+                self.nodes[last_child_idx as usize].set_next_sibling_idx(node_idx); // Set next sibling of last child
+                self.nodes[first_child_idx as usize].set_prev_sibling_idx(node_idx); // Set previous sibling of first child to last child
+                node_info.set_prev_sibling_idx(last_child_idx); // Set previous sibling to last child
+            }
         }
 
         #[cfg(feature = "forward_only")]
+        {
+            let parent_info = &mut self.nodes[parent_idx as usize];
+
+            if parent_info.first_child_idx() == 0 {
+                parent_info.set_first_child_idx(node_idx); // Set first child if none exists
+            } else if last_child_idx != 0 {
+                // If there is a last child, set the next sibling index of the last child to this node
+                self.nodes[last_child_idx as usize].set_next_sibling_idx(node_idx);
+            }
+        }
+
         // if parent_idx != self.last_node_idx() {
         //     self.nodes[self.last_node_idx() as usize].set_next_sibling_idx(self.nodes.len() as NodeIdx);
         // }
@@ -349,7 +394,10 @@ impl Document {
         attributes_range.end += 1; // Extend the range to include the new attribute
         node_info.set_node_type(NodeType::Element {
             name: match &node_info.node_type() {
+                #[cfg(not(feature = "use_cstr"))]
                 NodeType::Element { name, .. } => name.clone(),
+                #[cfg(feature = "use_cstr")]
+                NodeType::Element { name, .. } => *name,
                 _ => return Err(ParseXmlError::InternalError),
             },
             attributes: attributes_range,
@@ -374,7 +422,7 @@ impl Document {
         #[cfg(feature = "use_cstr")]
         {
             let content = std::ffi::CStr::from_bytes_until_nul(&self.xml[location as usize..])
-                .unwrap_or(&c"cstr not valid");
+                .unwrap_or(c"cstr not valid");
             content.to_str().unwrap_or("non valid utf-8")
         }
     }
@@ -391,7 +439,7 @@ impl Document {
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
     ///
-    /// let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
+    /// let xml_data = b"<root><child>Text</child><last/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let all_nodes: Vec<Node> = document.all_nodes().collect();
     ///
@@ -417,15 +465,15 @@ impl Document {
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
     ///
-    /// let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
+    /// let xml_data = b"<root><child>Text</child><last/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let descendants: Vec<Node> = document.descendants(root_node.idx()).collect();
     ///
-    /// assert_eq!(descendants.len(), 3); // child, Text, and totototo
+    /// assert_eq!(descendants.len(), 3); // child, Text, and last
     /// assert!(descendants[0].is("child"));
     /// assert_eq!(descendants[1].text().unwrap(), "Text");
-    /// assert!(descendants[2].is("totototo"));
+    /// assert!(descendants[2].is("last"));
     /// ```
     #[inline]
     #[must_use]
@@ -449,14 +497,14 @@ impl Document {
     /// use xhtml_parser::Document;
     /// use xhtml_parser::Node;
     ///
-    /// let xml_data = b"<root><child>Text</child><totototo/></root>".to_vec();
+    /// let xml_data = b"<root><child>Text</child>boo<last/></root>".to_vec();
     /// let document = Document::new(xml_data).unwrap();
     /// let root_node = document.root().unwrap();
     /// let last_descendant_idx = document.last_descendant(root_node.idx());
     ///
     /// assert!(last_descendant_idx > 0); // There should be descendants
     /// let last_descendant = document.get_node(last_descendant_idx).unwrap();
-    /// assert!(last_descendant.is("totototo")); // The last descendant should be totototo
+    /// assert!(last_descendant.is("last")); // The last descendant should be "last"
     /// ```
     /// # Notes
     /// - The method checks if the node index is valid and returns `0` if it is not.
@@ -467,26 +515,47 @@ impl Document {
     #[must_use]
     pub fn last_descendant(&self, node_idx: NodeIdx) -> NodeIdx {
         if node_idx == 0
-            || node_idx as usize >= self.nodes.len()
-            || (node_idx == 1 && self.nodes.len() <= 2)
+            || self.nodes[node_idx as usize].first_child_idx() == 0
+            || node_idx as usize >= (self.nodes.len() - 1)
         {
-            0 // Invalid node index, or there is no descendant for the root
+            0 // Invalid node index, or there is no node following that node
         } else if node_idx == 1 {
             // If the node is the root, return the last node index
             return self.last_node_idx();
         } else {
-            let mut up_idx = self.nodes[node_idx as usize].parent_idx;
-            let mut last_descendant = self.nodes[up_idx as usize].next_sibling_idx();
-            while last_descendant == 0 {
-                up_idx = self.nodes[up_idx as usize].parent_idx;
-                if up_idx <= 1 {
-                    last_descendant = self.nodes.len() as NodeIdx; // No more parents, will return the last node_idx
-                    break;
+            #[cfg(not(feature = "forward_only"))]
+            {
+                let mut up_idx = self.nodes[node_idx as usize].parent_idx;
+                let mut last_descendant = self.nodes[up_idx as usize].next_sibling_idx();
+                while last_descendant == 0 {
+                    up_idx = self.nodes[up_idx as usize].parent_idx;
+                    if up_idx <= 1 {
+                        last_descendant = self.nodes.len() as NodeIdx; // No more parents, will return the last node_idx
+                        break;
+                    }
+                    last_descendant = self.nodes[up_idx as usize].next_sibling_idx();
                 }
-                last_descendant = self.nodes[up_idx as usize].next_sibling_idx();
+
+                last_descendant - 1
             }
 
-            last_descendant - 1
+            #[cfg(feature = "forward_only")]
+            {
+                let mut curr_node_idx = self.nodes[node_idx as usize].first_child_idx();
+                // Start from the first child of the node
+
+                loop {
+                    while self.nodes[curr_node_idx as usize].next_sibling_idx() != 0 {
+                        curr_node_idx = self.nodes[curr_node_idx as usize].next_sibling_idx();
+                    }
+                    if self.nodes[curr_node_idx as usize].first_child_idx() != 0 {
+                        curr_node_idx = self.nodes[curr_node_idx as usize].first_child_idx();
+                    } else {
+                        break; // Found the last descendant
+                    }
+                }
+                curr_node_idx
+            }
         }
     }
 
@@ -722,6 +791,7 @@ impl<'a> Iterator for Nodes<'a> {
     }
 }
 
+#[cfg(not(feature = "forward_only"))]
 impl DoubleEndedIterator for Nodes<'_> {
     /// Returns the previous node in the sequence.
     ///
