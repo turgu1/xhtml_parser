@@ -12,10 +12,10 @@
 use crate::defs::{NodeIdx, XmlIdx};
 use crate::node_type::NodeType;
 
+#[cfg(not(feature = "forward_only"))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[must_use]
 pub struct NodeInfo {
-    //node_idx: NodeIdx,   // Could never be 0, as 0 is reserved for None
     pub(crate) parent_idx: NodeIdx, // Parent node index, 0 for root
     prev_sibling: NodeIdx,          // previous sibling, or last child of parent
     next_sibling: NodeIdx,          // Could be next_sibling or the node following the parent
@@ -23,7 +23,17 @@ pub struct NodeInfo {
     node_type: NodeType,
 }
 
+#[cfg(feature = "forward_only")]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[must_use]
+pub struct NodeInfo {
+    next_sibling: NodeIdx, // Could be next_sibling or the node following the parent
+    first_child: NodeIdx,  // First child of this node
+    node_type: NodeType,
+}
+
 impl NodeInfo {
+    #[cfg(not(feature = "forward_only"))]
     /// Creates a new `NodeInfo` instance.
     ///
     /// # Arguments
@@ -42,6 +52,16 @@ impl NodeInfo {
         }
     }
 
+    #[cfg(feature = "forward_only")]
+    #[inline]
+    pub(crate) fn new(node_type: NodeType) -> Self {
+        NodeInfo {
+            next_sibling: 0,
+            first_child: 0,
+            node_type,
+        }
+    }
+
     /// Returns `true` if this node is an element node.
     #[inline]
     #[must_use]
@@ -49,6 +69,7 @@ impl NodeInfo {
         matches!(self.node_type, NodeType::Element { .. })
     }
 
+    #[cfg(not(feature = "forward_only"))]
     /// Returns the index of the parent node, or `None` if this is the head node.
     #[inline]
     #[must_use]
@@ -60,6 +81,7 @@ impl NodeInfo {
         }
     }
 
+    #[cfg(not(feature = "forward_only"))]
     /// Returns the index of the previous sibling of this node.
     #[inline]
     #[must_use]
@@ -119,6 +141,7 @@ impl NodeInfo {
         self.next_sibling = idx;
     }
 
+    #[cfg(not(feature = "forward_only"))]
     /// Sets the previous sibling index for this node.
     #[inline]
     pub fn set_prev_sibling_idx(&mut self, idx: NodeIdx) {
@@ -131,6 +154,7 @@ impl NodeInfo {
         self.first_child = idx;
     }
 
+    #[cfg(not(feature = "forward_only"))]
     /// Sets the parent index for this node.
     #[inline]
     pub fn set_parent_idx(&mut self, idx: NodeIdx) {

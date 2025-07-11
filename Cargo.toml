@@ -1,6 +1,6 @@
 [package]
 name = "xhtml_parser"
-version = "0.2.7"
+version = "0.2.8"
 authors = ["Guy Turcotte"]
 description = "Non-validating XHTML Tree-based parser."
 readme = "README.md"
@@ -23,13 +23,17 @@ default = [
     "small_attr_count",
     "medium_xml_size",
 ]
+
 all_features = [
     "namespace_removal",
     "parse_escapes",
     "keep_ws_only_pcdata",
     "trim_pcdata",
     "use_cstr",
+    "forward_only",
 ]
+
+
 namespace_removal = []
 parse_escapes = []
 keep_ws_only_pcdata = []
@@ -44,6 +48,7 @@ small_xml_size = []
 medium_xml_size = []
 large_xml_size = []
 use_cstr = []
+forward_only = []
 
 [dev-dependencies]
 test_support = { path = "./tests/test_support" }
@@ -54,3 +59,7 @@ travis-ci = { repository = "turgu1/xhtml_parser" }
 
 [profile.release]
 opt-level = 3
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false

@@ -51,6 +51,11 @@ impl<'xml> Attribute<'xml> {
     #[inline]
     #[must_use]
     pub fn name(&self) -> &str {
+        #[cfg(feature = "use_cstr")]
+        {
+            self.doc.get_str_from_location(self.data.name)
+        }
+        #[cfg(not(feature = "use_cstr"))]
         self.doc.get_str_from_location(self.data.name.clone())
     }
 
@@ -68,6 +73,11 @@ impl<'xml> Attribute<'xml> {
     #[inline]
     #[must_use]
     pub fn value(&self) -> &'xml str {
+        #[cfg(feature = "use_cstr")]
+        {
+            self.doc.get_str_from_location(self.data.value)
+        }
+        #[cfg(not(feature = "use_cstr"))]
         self.doc.get_str_from_location(self.data.value.clone())
     }
 }

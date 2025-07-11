@@ -1,5 +1,10 @@
 ## ChangeLog
 
+### [0.2.8] - 2025-07-11
+
+- New `forward_only` feature: This feature removes node information and methods that permit going backward in the node structure. This is to diminish the amount of memory required to keep the nodes structure, useful for memory-constrained context when backward displacement is not used. See the `README.md` file, section on size effects for more information, combined or not with the `use_cstr` feature.
+- Some code refactoring.
+
 ### [0.2.7] - 2025-07-01
 
 - Clippy (and pedantic) related refactoring.

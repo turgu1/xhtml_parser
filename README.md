@@ -21,6 +21,21 @@ For performance comparison, a series of 20 runs were done with both PUGIXML (GNU
 | Average Duration | 5856 µS |   3380 µS    |
 | Std Deviation    |  266 µS |     88 µS    |
 
+### Effects of some features on node structure element size
+
+Here is a table showing the effect that some feature combinaisons may have on the DOM-like structure sizes. The nodes and attributes structure element sizes are shown (separated with a '/'), depending on the following features:
+
+- `none`, `use_cstr`, `forward_only`, `use_cstr` and `forward_only` combined.
+- `xxxx_node_count`, `xxxx_attr_count`, `xxxx_xml_size`.
+
+|                                                           |   `none`   | `use_cstr` | `forward_only` | `use_cstr` & `forward_only` |
+|-----------------------------------------------------------|:----------:|:----------:|:--------------:|:---------------------------:|
+| `small_node_count` `small_attr_count` `small_xml_size`    |   18 / 8   |   16 / 4   |     14 / 8     |             12 / 4          |
+| `small_node_count` `small_attr_count` `medium_xml_size`   |   24 / 16  |   20 / 8   |     20 / 16    |             16 / 8          |
+| `medium_node_count` `medium_attr_count` `medium_xml_size` |   36 / 16  |   32 / 8   |     28 / 16    |             24 / 8          |
+| `medium_node_count` `medium_attr_count` `large_xml_size`  |   48 / 32  |   40 / 16  |     40 / 32    |             32 / 16         |
+
+
 ### Licensing
 
 The parser is open-source and can be freely used and modified under the terms of the MIT license.
@@ -42,9 +57,16 @@ The parser is open-source and can be freely used and modified under the terms of
 - `medium_xml_size`: Allow XML files up to 4GB in length. Default is **enabled**.
 - `large_xml_size`: Allow XML files up to 16 HexaBytes in length. Default is *disabled*.
 - `use_cstr`: Uses an index into a null-terminated `[u8]` slice (C-style string) instead of a `Range` to represent string locations in the XML content. Default is *disabled*.
+- `forward_only`: Removes node information and methods that permit going backward in the node structure. Default is *disabled*.
 - `all_features` to get all features enabled under a single one, but without the following: `xxxx_node_count`, `xxxx_attr_count`, and `xxxx_xml_size`.
 
 ## ChangeLog
+
+### [0.2.8] - 2025-07-11
+
+- New `forward_only` feature: This feature removes node information and methods that permit going backward in the node structure. This is to diminish the amount of memory required to keep the nodes structure, useful for memory-constrained context when backward displacement is not used. See the section on size effects for more information, combined or not with the `use_cstr` feature.
+
+- Some code refactoring.
 
 ### [0.2.7] - 2025-07-01
 
