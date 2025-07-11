@@ -22,8 +22,6 @@ default = [
     "small_node_count",
     "small_attr_count",
     "medium_xml_size",
-    "use_cstr",
-    "forward_only",
 ]
 
 all_features = [
@@ -60,4 +58,8 @@ timelapse = "0.1.3"
 travis-ci = { repository = "turgu1/xhtml_parser" }
 
 [profile.release]
-# debug = true
+opt-level = 3
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false

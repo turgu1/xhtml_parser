@@ -57,7 +57,7 @@ const CARRIAGE_RETURN: u8 = b'\r';
 #[derive(Clone, Copy)]
 
 #[rustfmt::skip]
-enum Chartype {
+pub(crate) enum Chartype {
     ParsePCData   =   1,  // &, \r
     ParseAtrNorm  =   4,  // &, \r, \n, space, tab
     Space         =   8,  // \r, \n, space, tab
@@ -67,7 +67,7 @@ enum Chartype {
 }
 
 #[rustfmt::skip]
-const CHARTYPE_TABLE: [u8; 256] = [
+pub(crate) const CHARTYPE_TABLE: [u8; 256] = [
       0,   0,   0,   0,   0,   0,   0,   0,   0,  28,  28,   0,   0,  29,   0,   0, // 0-15
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 16-31
      28,   0,   0,   0,   0,   0,   5,   0,   0,   0,   0,   0,   0,  64,  64,   0, // 32-47
@@ -286,29 +286,29 @@ impl Document {
         } else {
             (self.xml[p as usize..])
                 .iter()
-                .position(|&c| (CHARTYPE_TABLE[c as usize] & (chartype as u8)) == 0)
+                .position(|&byte| !Self::is_of_type(byte, chartype))
                 .map(|pos| p + pos as XmlIdx)
         }
     }
 
     /// Scans a range in the XML buffer for a specific character type and returns the position of the first occurrence.
-    /// ///
+    ///
     /// This method searches for the first character in the specified range that matches the given chartype.
     /// If a character matching the chartype is found, it returns the position of that character.
     /// If no such character is found, it returns `None`.
     ///
     /// # Arguments
-    /// * `range` - The range within the XML buffer to search
-    /// * `chartype` - The chartype to search for, represented as a Chartype enum
+    /// * `range` - The range within the XML buffer to search.
+    /// * `chartype` - The chartype to search for, represented as a `Chartype` enum.
     ///
     /// # Returns
     /// `Option<XmlIdx>` - The position of the first occurrence of the character matching the chartype,
-    /// or `None` if no such character is found within
+    /// or `None` if no such character is found within the specified range.
     #[inline(always)]
     fn scan_range_for_chartype(&self, range: XmlRange, chartype: Chartype) -> Option<XmlIdx> {
         (self.xml[range.start as usize..range.end as usize])
             .iter()
-            .position(|&c| (CHARTYPE_TABLE[c as usize] & (chartype as u8)) != 0)
+            .position(|&byte| Self::is_of_type(byte, chartype))
             .map(|pos| range.start + pos as XmlIdx)
     }
 
@@ -379,7 +379,7 @@ impl Document {
         } else {
             (self.xml[p as usize..])
                 .iter()
-                .position(|&c| (CHARTYPE_TABLE[c as usize] & (chartype as u8)) != 0)
+                .position(|&byte| Self::is_of_type(byte, chartype))
                 .map(|pos| p + pos as XmlIdx)
         }
     }
@@ -813,7 +813,7 @@ impl Document {
     /// # Returns
     /// `true` if the byte matches the character type, `false` otherwise
     #[inline(always)]
-    fn is_of_type(byte: u8, chartype: Chartype) -> bool {
+    pub(crate) fn is_of_type(byte: u8, chartype: Chartype) -> bool {
         (CHARTYPE_TABLE[byte as usize] & chartype as u8) != 0
     }
 
@@ -1001,9 +1001,7 @@ impl Document {
                 }
                 State::ReadTagOpen => {
                     let start = i;
-                    if CHARTYPE_TABLE[self.xml[i as usize] as usize] & (Chartype::StartSymBol as u8)
-                        == 0
-                    {
+                    if !Self::is_of_type(self.xml[i as usize], Chartype::StartSymBol) {
                         return self.invalid(
                             "Tag name must start with a letter or underscore",
                             i as XmlIdx,
@@ -1215,10 +1213,7 @@ impl Document {
                         }
                         _ => {
                             let start = i;
-                            if CHARTYPE_TABLE[self.xml[i as usize] as usize]
-                                & (Chartype::StartSymBol as u8)
-                                == 0
-                            {
+                            if !Self::is_of_type(self.xml[i as usize], Chartype::StartSymBol) {
                                 return self.invalid(
                                     "Attribute name must start with a letter or underscore",
                                     i,

@@ -396,8 +396,10 @@ impl Document {
             name: match &node_info.node_type() {
                 #[cfg(not(feature = "use_cstr"))]
                 NodeType::Element { name, .. } => name.clone(),
+
                 #[cfg(feature = "use_cstr")]
                 NodeType::Element { name, .. } => *name,
+
                 _ => return Err(ParseXmlError::InternalError),
             },
             attributes: attributes_range,
@@ -419,6 +421,7 @@ impl Document {
             let xml_content = &self.xml[location.start as usize..location.end as usize];
             std::str::from_utf8(xml_content).unwrap_or("non valid utf-8")
         }
+
         #[cfg(feature = "use_cstr")]
         {
             let content = std::ffi::CStr::from_bytes_until_nul(&self.xml[location as usize..])
@@ -502,10 +505,12 @@ impl Document {
     /// let root_node = document.root().unwrap();
     /// let last_descendant_idx = document.last_descendant(root_node.idx());
     ///
-    /// assert!(last_descendant_idx > 0); // There should be descendants
-    /// let last_descendant = document.get_node(last_descendant_idx).unwrap();
+    /// assert!(last_descendant_idx.is_some()); // There should be descendants
+    /// let last_descendant = document.get_node(last_descendant_idx.unwrap()).unwrap();
     /// assert!(last_descendant.is("last")); // The last descendant should be "last"
+    /// assert_eq!(document.last_descendant(last_descendant.idx()), None);
     /// ```
+    ///
     /// # Notes
     /// - The method checks if the node index is valid and returns `0` if it is not.
     /// - If the node index is `0` or if it is the root node with no descendants, it returns `0`.
@@ -513,15 +518,15 @@ impl Document {
     /// - If the node index is invalid or out of bounds, it returns `0`.
     /// - If the node index is `1` and there are no descendants, it returns `0`.
     #[must_use]
-    pub fn last_descendant(&self, node_idx: NodeIdx) -> NodeIdx {
+    pub fn last_descendant(&self, node_idx: NodeIdx) -> Option<NodeIdx> {
         if node_idx == 0
             || self.nodes[node_idx as usize].first_child_idx() == 0
             || node_idx as usize >= (self.nodes.len() - 1)
         {
-            0 // Invalid node index, or there is no node following that node
+            None // Invalid node index, or there is no node following that node
         } else if node_idx == 1 {
             // If the node is the root, return the last node index
-            return self.last_node_idx();
+            Some(self.last_node_idx())
         } else {
             #[cfg(not(feature = "forward_only"))]
             {
@@ -536,7 +541,7 @@ impl Document {
                     last_descendant = self.nodes[up_idx as usize].next_sibling_idx();
                 }
 
-                last_descendant - 1
+                Some(last_descendant - 1)
             }
 
             #[cfg(feature = "forward_only")]
@@ -554,7 +559,7 @@ impl Document {
                         break; // Found the last descendant
                     }
                 }
-                curr_node_idx
+                Some(curr_node_idx)
             }
         }
     }
@@ -750,19 +755,15 @@ impl<'a> Nodes<'a> {
     #[inline]
     #[must_use]
     pub fn descendants(document: &'a Document, node_idx: NodeIdx) -> Self {
-        let last_node_idx = document.last_descendant(node_idx);
-        if node_idx == 0 || node_idx as usize >= document.nodes.len() || last_node_idx == 0 {
-            return Nodes {
+        match document.last_descendant(node_idx) {
+            None => Nodes {
                 front: None,
                 back: None,
-            };
-        }
-
-        let front = document.get_node(node_idx + 1);
-        let back = document.get_node(last_node_idx);
-        Nodes {
-            front: front.ok(),
-            back: back.ok(),
+            },
+            Some(last_node_idx) => Nodes {
+                front: document.get_node(node_idx + 1).ok(),
+                back: document.get_node(last_node_idx).ok(),
+            },
         }
     }
 }
