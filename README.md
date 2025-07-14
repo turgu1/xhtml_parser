@@ -28,12 +28,18 @@ Here is a table showing the effect that some feature combinaisons may have on th
 - `none`, `use_cstr`, `forward_only`, `use_cstr` and `forward_only` combined.
 - `xxxx_node_count`, `xxxx_attr_count`, `xxxx_xml_size`.
 
-|                                                           |   `none`   | `use_cstr` | `forward_only` | `use_cstr` & `forward_only` |
+<style scoped>
+table {
+  font-size: 12px;
+}
+</style>
+
+|                                                           |   `none`   | `use_cstr` | `forward_`</br>`only` | `use_cstr` &</br>`forward_only` |
 |-----------------------------------------------------------|:----------:|:----------:|:--------------:|:---------------------------:|
-| `small_node_count` `small_attr_count` `small_xml_size`    |   18 / 8   |   16 / 4   |     14 / 8     |             12 / 4          |
-| `small_node_count` `small_attr_count` `medium_xml_size`   |   24 / 16  |   20 / 8   |     20 / 16    |             16 / 8          |
-| `medium_node_count` `medium_attr_count` `medium_xml_size` |   36 / 16  |   32 / 8   |     28 / 16    |             24 / 8          |
-| `medium_node_count` `medium_attr_count` `large_xml_size`  |   48 / 32  |   40 / 16  |     40 / 32    |             32 / 16         |
+| `small_node_count`</br>`small_attr_count`</br>`small_xml_size`    |   18 / 8   |   16 / 4   |     14 / 8     |             12 / 4          |
+| `small_node_count`</br>`small_attr_count`</br>`medium_xml_size`   |   24 / 16  |   20 / 8   |     20 / 16    |             16 / 8          |
+| `medium_node_count`</br>`medium_attr_count`</br>`medium_xml_size` |   36 / 16  |   32 / 8   |     28 / 16    |             24 / 8          |
+| `medium_node_count`</br>`medium_attr_count`</br>`large_xml_size`  |   48 / 32  |   40 / 16  |     40 / 32    |             32 / 16         |
 
 
 ### Licensing

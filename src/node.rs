@@ -41,6 +41,9 @@ use crate::document::{Document, Nodes};
 use crate::node_info::NodeInfo;
 use crate::node_type::NodeType;
 
+#[cfg(feature = "use_cstr")]
+use std::ffi::CStr;
+
 /// Represents a node in an XML document.
 ///
 /// `Node` contains metadata about the node, such as its index, type, and position in the document.
@@ -131,11 +134,29 @@ impl<'xml> Node<'xml> {
         }
     }
 
+    #[cfg(feature = "use_cstr")]
+    #[inline]
+    #[must_use]
+    pub fn tag_name_cstr(&self) -> &CStr {
+        match &self.node_info.node_type() {
+            NodeType::Element { name, .. } => self.doc.get_cstr_from_location(*name),
+            _ => c"", // No tag name for non-element nodes
+        }
+    }
+
     /// Returns true if the node's tag name matches the provided tag name, false otherwise.
     #[inline]
     #[must_use]
     pub fn is(&self, tag_name: &str) -> bool {
         self.tag_name() == tag_name
+    }
+
+    #[cfg(feature = "use_cstr")]
+    /// Returns true if the node's tag name matches the provided tag name, false otherwise.
+    #[inline]
+    #[must_use]
+    pub fn is_cstr(&self, tag_name: &CStr) -> bool {
+        self.tag_name_cstr() == tag_name
     }
 
     /// Returns the text content of the node.
@@ -166,6 +187,16 @@ impl<'xml> Node<'xml> {
             }
             #[cfg(feature = "use_cstr")]
             NodeType::Text(text_location) => Some(self.doc.get_str_from_location(*text_location)),
+            _ => None,
+        }
+    }
+
+    #[cfg(feature = "use_cstr")]
+    #[inline]
+    #[must_use]
+    pub fn text_cstr(&self) -> Option<&'xml CStr> {
+        match &self.node_info.node_type() {
+            NodeType::Text(text_location) => Some(self.doc.get_cstr_from_location(*text_location)),
             _ => None,
         }
     }

@@ -533,12 +533,12 @@ impl Document {
     /// # Returns
     /// A u32 representing the decimal value of the digits found in the input
     #[inline(always)]
-    fn decimal(s: &[u8]) -> u32 {
-        s.iter().fold(0u32, |acc, &c| {
+    fn decimal(s: &[u8]) -> Option<u32> {
+        s.iter().try_fold(0u32, |acc, &c| {
             if c.is_ascii_digit() {
-                acc * 10 + u32::from(c - b'0')
+                Some(acc * 10 + u32::from(c - b'0'))
             } else {
-                acc // Ignore non-digit characters
+                None
             }
         })
     }
@@ -576,12 +576,12 @@ impl Document {
     /// # Returns
     /// A u32 representing the hexadecimal value of the digits found in the input
     #[inline(always)]
-    fn hexadecimal(s: &[u8]) -> u32 {
-        s.iter().fold(0u32, |acc, &c| {
+    fn hexadecimal(s: &[u8]) -> Option<u32> {
+        s.iter().try_fold(0u32, |acc, &c| {
             if c.is_ascii_hexdigit() {
-                acc * 16 + Self::hex_val(c)
+                Some(acc * 16 + Self::hex_val(c))
             } else {
-                acc // Ignore non-hexadecimal characters
+                None
             }
         })
     }
@@ -627,9 +627,9 @@ impl Document {
 
         let bytes = if number {
             char::from_u32(if hex_number {
-                Self::hexadecimal(from_slice)
+                Self::hexadecimal(from_slice)?
             } else {
-                Self::decimal(from_slice)
+                Self::decimal(from_slice)?
             })
             .map(|val| val.to_string().into_bytes())?
         } else {
@@ -687,23 +687,27 @@ impl Document {
             }
 
             if next_pos > from {
-                // Move the content before to the `to` position
-                self.xml
-                    .copy_within(from as usize..next_pos as usize, to as usize);
+                if from != to {
+                    // Move the content before to the `to` position
+                    self.xml
+                        .copy_within(from as usize..next_pos as usize, to as usize);
+                }
                 to += next_pos - from;
             }
 
             #[cfg(feature = "parse_escapes")]
             if self.xml[next_pos as usize] == AMPERSAND {
-                match self.translate_sequence(next_pos + 1, to) {
-                    Some((new_from, new_to)) => {
-                        from = new_from;
-                        to = new_to;
+                if let Some((new_from, new_to)) = self.translate_sequence(next_pos + 1, to) {
+                    from = new_from;
+                    to = new_to;
+                } else {
+                    // Invalid escape sequence, just skip the '&'
+                    if from != to {
+                        // If we have moved some content, we need to move the `to` position forward
+                        self.xml[to as usize] = AMPERSAND; // Keep the '&' character
                     }
-                    None => {
-                        // Invalid escape sequence, just skip the '&'
-                        from += 1;
-                    }
+                    from = next_pos + 1;
+                    to += 1;
                 }
             }
 
@@ -1170,7 +1174,9 @@ impl Document {
                     }
 
                     i += 1;
-                    if i >= size || level == 0 {
+                    if i >= size
+                    /* || level == 0 */
+                    {
                         State::End
                     } else {
                         State::ReadPCData

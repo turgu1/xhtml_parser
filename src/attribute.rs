@@ -10,6 +10,9 @@ use crate::document::Document;
 use crate::node::Node;
 use crate::node_type::NodeType;
 
+#[cfg(feature = "use_cstr")]
+use std::ffi::CStr;
+
 /// Information about an XML attribute, storing name and value ranges within the document.
 ///
 /// This struct holds references to positions in the source document where the attribute
@@ -59,6 +62,13 @@ impl<'xml> Attribute<'xml> {
         self.doc.get_str_from_location(self.data.name.clone())
     }
 
+    #[cfg(feature = "use_cstr")]
+    #[inline]
+    #[must_use]
+    pub fn name_cstr(&self) -> &CStr {
+        self.doc.get_cstr_from_location(self.data.name)
+    }
+
     /// Returns true if the attribute's name matches the given string.
     #[inline]
     #[must_use]
@@ -79,6 +89,13 @@ impl<'xml> Attribute<'xml> {
         }
         #[cfg(not(feature = "use_cstr"))]
         self.doc.get_str_from_location(self.data.value.clone())
+    }
+
+    #[cfg(feature = "use_cstr")]
+    #[inline]
+    #[must_use]
+    pub fn value_cstr(&self) -> &'xml CStr {
+        self.doc.get_cstr_from_location(self.data.value)
     }
 }
 

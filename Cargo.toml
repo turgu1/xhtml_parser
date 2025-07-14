@@ -1,6 +1,6 @@
 [package]
 name = "xhtml_parser"
-version = "0.2.8"
+version = "0.2.9"
 authors = ["Guy Turcotte"]
 description = "Non-validating XHTML Tree-based parser."
 readme = "README.md"
@@ -22,6 +22,7 @@ default = [
     "small_node_count",
     "small_attr_count",
     "medium_xml_size",
+    "use_cstr",
 ]
 
 all_features = [

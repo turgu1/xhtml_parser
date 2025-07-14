@@ -15,6 +15,9 @@ use crate::node::Node;
 use crate::node_info::NodeInfo;
 use crate::node_type::NodeType;
 
+#[cfg(feature = "use_cstr")]
+use std::ffi::CStr;
+
 /// Represents a parsed XML document.
 ///
 /// The `Document` struct contains a vector of `NodeInfo` representing the nodes in the document,
@@ -428,6 +431,21 @@ impl Document {
                 .unwrap_or(c"cstr not valid");
             content.to_str().unwrap_or("non valid utf-8")
         }
+    }
+
+    #[cfg(feature = "use_cstr")]
+    /// Retrieves a CStr from the XML content based on the given location.
+    ///
+    /// # Arguments
+    /// - `location`: An `XmlLocation` that specifies the start index of the CStr in the XML content.
+    ///
+    /// # Returns
+    /// - `&str`: A string slice containing the CStr from the specified location.
+    ///
+    #[inline]
+    #[must_use]
+    pub fn get_cstr_from_location(&self, location: XmlLocation) -> &CStr {
+        CStr::from_bytes_until_nul(&self.xml[location as usize..]).unwrap_or(c"cstr not valid")
     }
 
     /// Returns an iterator over all nodes in the document.
