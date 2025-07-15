@@ -62,6 +62,22 @@ impl<'xml> Attribute<'xml> {
         self.doc.get_str_from_location(self.data.name.clone())
     }
 
+    /// Returns the name of the attribute as a byte slice.
+    ///
+    /// # Returns
+    /// A byte slice containing the attribute name
+    #[inline]
+    #[must_use]
+    pub fn name_bytes(&self) -> &[u8] {
+        #[cfg(feature = "use_cstr")]
+        {
+            self.doc.get_cstr_from_location(self.data.name).to_bytes()
+        }
+
+        #[cfg(not(feature = "use_cstr"))]
+        &self.doc.xml[self.data.name.start as usize..self.data.name.end as usize]
+    }
+
     #[cfg(feature = "use_cstr")]
     /// Returns the name of the attribute as a CStr.
     ///
@@ -77,10 +93,10 @@ impl<'xml> Attribute<'xml> {
     }
 
     /// Returns true if the attribute's name matches the given string.
-    /// 
+    ///
     /// # Arguments
     /// * `name` - The string to compare against the attribute's name
-    /// 
+    ///
     /// # Returns
     /// True if the attribute's name matches the string, false otherwise
     #[inline]
@@ -89,13 +105,26 @@ impl<'xml> Attribute<'xml> {
         self.name() == name
     }
 
+    /// Returns true if the attribute's name matches the given byte slice.
+    ///
+    /// # Arguments
+    /// * `name` - The byte slice to compare against the attribute's name
+    ///
+    /// # Returns
+    /// True if the attribute's name matches the byte slice, false otherwise
+    #[inline]
+    #[must_use]
+    pub fn is_bytes(&self, name: &[u8]) -> bool {
+        self.name_bytes() == name
+    }
+
     /// Returns true if the attribute's name matches the given CStr.
     ///
     /// # Arguments
     /// * `name` - The CStr to compare against the attribute's name
-    /// 
+    ///
     /// # Returns
-    /// True if the attribute's name matches the CStr, false otherwise 
+    /// True if the attribute's name matches the CStr, false otherwise
     ///  
     /// # Note
     /// This method is only available when the `use_cstr` feature is enabled
@@ -121,12 +150,28 @@ impl<'xml> Attribute<'xml> {
         self.doc.get_str_from_location(self.data.value.clone())
     }
 
+    /// Returns the vale of the attribute as a byte slice.
+    ///
+    /// # Returns
+    /// A byte slice containing the attribute value
+    #[inline]
+    #[must_use]
+    pub fn value_bytes(&self) -> &[u8] {
+        #[cfg(feature = "use_cstr")]
+        {
+            self.doc.get_cstr_from_location(self.data.value).to_bytes()
+        }
+
+        #[cfg(not(feature = "use_cstr"))]
+        &self.doc.xml[self.data.name.start as usize..self.data.name.end as usize]
+    }
+
     #[cfg(feature = "use_cstr")]
     /// Returns the value of the attribute as a CStr.
     ///
     /// # Returns
     /// A CStr reference containing the attribute value
-    /// 
+    ///
     /// # Note
     /// This method is only available when the `use_cstr` feature is enabled
     #[inline]

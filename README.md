@@ -28,12 +28,6 @@ Here is a table showing the effect that some feature combinaisons may have on th
 - `none`, `use_cstr`, `forward_only`, `use_cstr` and `forward_only` combined.
 - `xxxx_node_count`, `xxxx_attr_count`, `xxxx_xml_size`.
 
-<style scoped>
-table {
-  font-size: 12px;
-}
-</style>
-
 |                                                           |   `none`   | `use_cstr` | `forward_`</br>`only` | `use_cstr` &</br>`forward_only` |
 |-----------------------------------------------------------|:----------:|:----------:|:--------------:|:---------------------------:|
 | `small_node_count`</br>`small_attr_count`</br>`small_xml_size`    |   18 / 8   |   16 / 4   |     14 / 8     |             12 / 4          |
@@ -68,10 +62,16 @@ The parser is open-source and can be freely used and modified under the terms of
 
 ## ChangeLog
 
+### [0.2.10] - 2025-07-15
+
+- Added byte slice retrieval methods for node names, attribute names and values, and `PCData`.
+- Some performance optimization for the `Document::check_closing_tag()` method located in the `parser.rs` file.
+- Table display adjustment in README.md (no <style> tag allowed in github).
+
 ### [0.2.9] - 2025-07-14
 
 - Added 75 negative tests for potentially malformed XML content. Some method adjustments in support of malformed content processing.
-- Added CStr retrieval methods for node names, attribute names and values, and PCData when the `use_cstr` feature is enabled.
+- Added `CStr` retrieval methods for node names, attribute names and values, and `PCData` when the `use_cstr` feature is enabled.
 - Tables formatting adjusted in documentation and readme file.
 
 ### [0.2.8] - 2025-07-11

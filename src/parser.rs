@@ -481,17 +481,20 @@ impl Document {
         if let NodeType::Element { name, .. } = self.nodes[parent_idx as usize].node_type() {
             #[cfg(not(feature = "use_cstr"))]
             {
-                let tag_name = self.get_str_from_location(name.clone());
-                let closing_tag = self.get_str_from_location(location.clone());
+                let tag_name = &self.xml[name.start as usize..name.end as usize];
+                let closing_tag = &self.xml[location.start as usize..location.end as usize];
                 if tag_name != closing_tag {
                     return self.invalid(
                         &format!(
-                            "Closing tag '{closing_tag}' does not match opening tag '{tag_name}'"
+                            "Closing tag '{}' does not match opening tag '{}'",
+                            self.get_str_from_location(location.clone()),
+                            self.get_str_from_location(name.clone())
                         ),
                         location.start,
                     );
                 }
             }
+
             #[cfg(feature = "use_cstr")]
             {
                 let tag_name = std::ffi::CStr::from_bytes_until_nul(&self.xml[*name as usize..])

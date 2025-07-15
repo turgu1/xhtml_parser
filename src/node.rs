@@ -134,6 +134,20 @@ impl<'xml> Node<'xml> {
         }
     }
 
+    #[inline]
+    #[must_use]
+    pub fn tag_name_bytes(&self) -> &[u8] {
+        match &self.node_info.node_type() {
+            #[cfg(feature = "use_cstr")]
+            NodeType::Element { name, .. } => self.doc.get_cstr_from_location(*name).to_bytes(),
+
+            #[cfg(not(feature = "use_cstr"))]
+            NodeType::Element { name, .. } => &self.doc.xml[name.start as usize..name.end as usize],
+
+            _ => b"", // No tag name for non-element nodes
+        }
+    }
+
     #[cfg(feature = "use_cstr")]
     /// Returns the tag name of the node as a CStr.
     /// If the node is not an element, it returns an empty CStr.
@@ -162,6 +176,13 @@ impl<'xml> Node<'xml> {
     #[must_use]
     pub fn is(&self, tag_name: &str) -> bool {
         self.tag_name() == tag_name
+    }
+
+    /// Returns true if the node's tag name matches the provided byte slice, false otherwise.
+    #[inline]
+    #[must_use]
+    pub fn is_bytes(&self, tag_name: &[u8]) -> bool {
+        self.tag_name_bytes() == tag_name
     }
 
     #[cfg(feature = "use_cstr")]
@@ -200,6 +221,24 @@ impl<'xml> Node<'xml> {
             }
             #[cfg(feature = "use_cstr")]
             NodeType::Text(text_location) => Some(self.doc.get_str_from_location(*text_location)),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn text_bytes(&self) -> Option<&'xml [u8]> {
+        match &self.node_info.node_type() {
+            #[cfg(not(feature = "use_cstr"))]
+            NodeType::Text(text_location) => {
+                Some(&self.doc.xml[text_location.start as usize..text_location.end as usize])
+            }
+
+            #[cfg(feature = "use_cstr")]
+            NodeType::Text(text_location) => {
+                Some(self.doc.get_cstr_from_location(*text_location).to_bytes())
+            }
+
             _ => None,
         }
     }
