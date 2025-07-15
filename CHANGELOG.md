@@ -4,7 +4,7 @@
 
 - Added byte slice retrieval methods for node names, attribute names and values, and `PCData`.
 - Some performance optimization for the `Document::check_closing_tag()` method located in the `parser.rs` file.
-- Table display adjustment in README.md (no <style> tag allowed in github).
+- Table display adjustment in README.md (no `style` tag allowed in github).
 
 ### [0.2.9] - 2025-07-14
 
