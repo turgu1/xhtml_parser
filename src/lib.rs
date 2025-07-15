@@ -64,12 +64,12 @@
 //! }
 //! </style>
 //!
-//! |                                                           |   `none`   | `use_cstr` | `forward_`</br>`only` | `use_cstr` &</br>`forward_only` |
+//! |                                                           |   `none`   | `use_cstr` | `forward_`<br/>`only` | `use_cstr` &<br/>`forward_only` |
 //! |-----------------------------------------------------------|:----------:|:----------:|:--------------:|:---------------------------:|
-//! | `small_node_count`</br>`small_attr_count`</br>`small_xml_size`    |   18 / 8   |   16 / 4   |     14 / 8     |             12 / 4          |
-//! | `small_node_count`</br>`small_attr_count`</br>`medium_xml_size`   |   24 / 16  |   20 / 8   |     20 / 16    |             16 / 8          |
-//! | `medium_node_count`</br>`medium_attr_count`</br>`medium_xml_size` |   36 / 16  |   32 / 8   |     28 / 16    |             24 / 8          |
-//! | `medium_node_count`</br>`medium_attr_count`</br>`large_xml_size`  |   48 / 32  |   40 / 16  |     40 / 32    |             32 / 16         |
+//! | `small_node_count`<br/>`small_attr_count`<br/>`small_xml_size`    |   18 / 8   |   16 / 4   |     14 / 8     |             12 / 4          |
+//! | `small_node_count`<br/>`small_attr_count`<br/>`medium_xml_size`   |   24 / 16  |   20 / 8   |     20 / 16    |             16 / 8          |
+//! | `medium_node_count`<br/>`medium_attr_count`<br/>`medium_xml_size` |   36 / 16  |   32 / 8   |     28 / 16    |             24 / 8          |
+//! | `medium_node_count`<br/>`medium_attr_count`<br/>`large_xml_size`  |   48 / 32  |   40 / 16  |     40 / 32    |             32 / 16         |
 //!
 //! ## Licensing
 //!
