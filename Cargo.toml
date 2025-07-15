@@ -22,7 +22,6 @@ default = [
     "small_node_count",
     "small_attr_count",
     "medium_xml_size",
-    "use_cstr",
 ]
 
 all_features = [

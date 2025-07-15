@@ -63,6 +63,13 @@ impl<'xml> Attribute<'xml> {
     }
 
     #[cfg(feature = "use_cstr")]
+    /// Returns the name of the attribute as a CStr.
+    ///
+    /// # Returns
+    /// A CStr reference containing the attribute name
+    ///
+    /// # Note
+    /// This method is only available when the `use_cstr` feature is enabled
     #[inline]
     #[must_use]
     pub fn name_cstr(&self) -> &CStr {
@@ -70,10 +77,33 @@ impl<'xml> Attribute<'xml> {
     }
 
     /// Returns true if the attribute's name matches the given string.
+    /// 
+    /// # Arguments
+    /// * `name` - The string to compare against the attribute's name
+    /// 
+    /// # Returns
+    /// True if the attribute's name matches the string, false otherwise
     #[inline]
     #[must_use]
     pub fn is(&self, name: &str) -> bool {
         self.name() == name
+    }
+
+    /// Returns true if the attribute's name matches the given CStr.
+    ///
+    /// # Arguments
+    /// * `name` - The CStr to compare against the attribute's name
+    /// 
+    /// # Returns
+    /// True if the attribute's name matches the CStr, false otherwise 
+    ///  
+    /// # Note
+    /// This method is only available when the `use_cstr` feature is enabled
+    #[cfg(feature = "use_cstr")]
+    #[inline]
+    #[must_use]
+    pub fn is_cstr(&self, name: &CStr) -> bool {
+        self.name_cstr() == name
     }
 
     /// Returns the value of the attribute as a string slice.
@@ -92,6 +122,13 @@ impl<'xml> Attribute<'xml> {
     }
 
     #[cfg(feature = "use_cstr")]
+    /// Returns the value of the attribute as a CStr.
+    ///
+    /// # Returns
+    /// A CStr reference containing the attribute value
+    /// 
+    /// # Note
+    /// This method is only available when the `use_cstr` feature is enabled
     #[inline]
     #[must_use]
     pub fn value_cstr(&self) -> &'xml CStr {

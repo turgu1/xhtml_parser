@@ -3,7 +3,7 @@
 ### [0.2.9] - 2025-07-14
 
 - Added 75 negative tests for potentially malformed XML content. Some method adjustments in support of malformed content processing.
-- Added CStr retrieval methods for names, values and PCData when the `use_cstr` feature is enabled.
+- Added CStr retrieval methods for node names, attribute names and values, and PCData when the `use_cstr` feature is enabled.
 - Tables formatting adjusted in documentation and readme file.
 
 ### [0.2.8] - 2025-07-11

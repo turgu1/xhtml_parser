@@ -135,6 +135,19 @@ impl<'xml> Node<'xml> {
     }
 
     #[cfg(feature = "use_cstr")]
+    /// Returns the tag name of the node as a CStr.
+    /// If the node is not an element, it returns an empty CStr.
+    /// # Example
+    /// ```
+    /// use xhtml_parser::Document;
+    ///
+    /// let xml_data = b"<root><child>Text</child></root>".to_vec();
+    /// let document = Document::new(xml_data).unwrap();
+    /// let root_node = document.root().unwrap();
+    /// let tag_name_cstr = root_node.tag_name_cstr();
+    ///
+    /// assert_eq!(tag_name_cstr.to_str().unwrap(), "root");
+    /// ```
     #[inline]
     #[must_use]
     pub fn tag_name_cstr(&self) -> &CStr {
@@ -192,6 +205,23 @@ impl<'xml> Node<'xml> {
     }
 
     #[cfg(feature = "use_cstr")]
+    /// Returns the text content of the node as a CStr.
+    /// If the node is not a text node, it returns None.
+    ///
+    /// # Example
+    /// ```
+    /// use xhtml_parser::Document;
+    ///
+    /// let xml_data = b"<root>The Text</root>".to_vec();
+    /// let document = Document::new(xml_data).unwrap();
+    /// let root_node = document.root().unwrap();
+    /// let child_node = root_node.first_child().unwrap();
+    ///
+    /// assert!(child_node.is_text());
+    ///
+    /// let text_content = child_node.text_cstr().unwrap();
+    /// assert_eq!(text_content.to_str().unwrap(), "The Text");
+    /// ```
     #[inline]
     #[must_use]
     pub fn text_cstr(&self) -> Option<&'xml CStr> {

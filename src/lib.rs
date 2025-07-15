@@ -77,6 +77,10 @@
 //!
 //! ## `ChangeLog`
 //!
+//! - Added 75 negative tests for potentially malformed XML content. Some method adjustments in support of malformed content processing.
+//! - Added CStr retrieval methods for node names, attribute names and values, and PCData when the `use_cstr` feature is enabled.
+//! - Tables formatting adjusted in documentation and readme file.
+//!
 //! ### [0.2.8] - 2025-07-11
 //!
 //! - New `forward_only` feature: This feature removes node information and methods that permit going backward in the node structure. This is to diminish the amount of memory required to keep the nodes structure, useful for memory-constrained context when backward displacement is not used. See the section on size effects for more information, combined or not with the `use_cstr` feature.
