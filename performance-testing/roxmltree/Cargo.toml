@@ -1,0 +1,14 @@
+[package]
+name = "rust-test-roxmltree"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+roxmltree = "0.20.0"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false

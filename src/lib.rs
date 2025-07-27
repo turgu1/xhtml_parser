@@ -44,12 +44,12 @@
 //!
 //! ## Basic performance comparison
 //!
-//! For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++) and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. Used the last version of PUGIXML and this crate with the default options. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, operating system, compiler versions, enabled options/features, data caching, etc.).
+//! For performance comparison, a series of 20 runs were done with both PUGIXML (GNU C++), roxmltree (Rust crate), and this crate, using `-O3` optimization and parsing the same 5.5 MB XML file containing 25K nodes and 25K attributes. Used the last version of PUGIXML, roxmltree, and this crate with the default options. The values shown are the average summation of the durations with their standard deviation. Results may vary depending on the computer performance and many other aspects (system load, operating system, compiler versions, enabled options/features, data caching, etc.).
 //!
-//! |                  | `PUGIXML` | `XHTML_PARSER` |
-//! |------------------|:-------:|:------------:|
-//! | Average Duration | 5856 µS |   3380 µS    |
-//! | Std Deviation    |  266 µS |     88 µS    |
+//! |                  | `PUGIXML` |   `roxmltree`  | `XHTML_PARSER` |
+//! |------------------|:---------:|:--------------:|:--------------:|
+//! | Average Duration |  5856 µS  |     16758 µS   |    3246 µS     |
+//! | Std Deviation    |   266 µS  |      565 µS    |      78 µS     |
 //!
 //! ## Effects of some features on node structure element size
 //!

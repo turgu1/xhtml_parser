@@ -1,0 +1,15 @@
+[package]
+name = "rust-test-xml5ever"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+markup5ever_rcdom = "0.35.0"
+xml5ever = "0.35.0"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
