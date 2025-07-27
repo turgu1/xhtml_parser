@@ -1,5 +1,5 @@
 [package]
-name = "rust-test-xml5ever"
+name = "test-xml5ever"
 version = "0.1.0"
 edition = "2024"
 

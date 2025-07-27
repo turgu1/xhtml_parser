@@ -1,10 +1,10 @@
 [package]
-name = "test-parser"
+name = "test-xhtml_parser"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-xhtml_parser = { path = "../../rust-crates/xhtml_parser" }
+xhtml_parser = "0.2"
 
 [profile.release]
 opt-level = 3

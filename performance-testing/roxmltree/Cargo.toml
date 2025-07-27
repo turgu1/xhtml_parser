@@ -1,5 +1,5 @@
 [package]
-name = "rust-test-roxmltree"
+name = "test-roxmltree"
 version = "0.1.0"
 edition = "2024"
 
