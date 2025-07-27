@@ -18,3 +18,5 @@ $ ./run.sh
 The `run.sh` script will run the app 20 times.
 
 The `perdormance-results.xls` contains the test results done by the author, as (to be) presented in the `xhtml_parser` documentation.
+
+Please note that for the xml5ever crate, the resulting data was not published in the documentation as the code used to get some results may not be appropriate.

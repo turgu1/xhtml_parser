@@ -18,8 +18,8 @@ For performance comparison, a series of 20 runs were done with both PUGIXML (GNU
 
 |                  | `PUGIXML` |   `roxmltree`  | `XHTML_PARSER` |
 |------------------|:---------:|:--------------:|:--------------:|
-| Average Duration |  5856 µS  |     16758 µS   |    3246 µS     |
-| Std Deviation    |   266 µS  |      565 µS    |      78 µS     |
+| Average Duration |  5312 µS  |     16758 µS   |    3246 µS     |
+| Std Deviation    |    98 µS  |      565 µS    |      79 µS     |
 
 ### Effects of some features on node structure element size
 
