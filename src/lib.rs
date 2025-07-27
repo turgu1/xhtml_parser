@@ -48,8 +48,8 @@
 //!
 //! |                  | `PUGIXML` |   `roxmltree`  | `XHTML_PARSER` |
 //! |------------------|:---------:|:--------------:|:--------------:|
-//! | Average Duration |  5312 µS  |     16758 µS   |    3246 µS     |
-//! | Std Deviation    |    98 µS  |      565 µS    |      79 µS     |
+//! | Average Duration |  5312 µS  |     15057 µS   |    3246 µS     |
+//! | Std Deviation    |    98 µS  |      412 µS    |      79 µS     |
 //!
 //! ## Effects of some features on node structure element size
 //!
