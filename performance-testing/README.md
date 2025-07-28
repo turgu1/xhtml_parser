@@ -10,7 +10,7 @@ This folder contains some applications to get performance data of some librairie
 To build and run, do the following:
 
 ```
-$ cd <sub-solder>
+$ cd <sub-folder>
 $ ./build.sh
 $ ./run.sh
 ```
